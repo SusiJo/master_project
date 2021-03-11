@@ -62,7 +62,6 @@ def write_table(gene_dict, sample_ids, all_files, outpath):
     :param all_files: dict
     :param outpath
     """
-
     with open(outpath, 'w') as table:
         # .join(list) iterates over ids
         table.write("GeneID\tGeneName\t" + "\t".join(sample_ids) + "\n")
@@ -86,7 +85,6 @@ def read_tpm(infile):
     :return: gene_names
     :return data_list
     """
-
     tmp = []
     gene_names = []
     gene_ids = []
@@ -127,7 +125,6 @@ def parse_csv(files):
     :param files: list of files
     :return: srr_metadata: metadata dictionary
     """
-
     srr_metadata = {}
     is_tumor = ''
     for file in files:
