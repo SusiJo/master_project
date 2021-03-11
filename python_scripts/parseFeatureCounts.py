@@ -56,8 +56,8 @@ def main(inpath, genes, outpath, lengths):
 def parse_featureCounts(files, genes):
     """Read a file and the sample ID and save gene_ids and tmp_values, adapted from Steffen Lemke
 
-    :param: files: list of files
-    :param: genes: dict mapping gene_ids to gene_names
+    :param files: list of files
+    :param genes: dict mapping gene_ids to gene_names
     :return: counts_all_files
     :return: gene_dict
     :return: geneLengths_all_files : dict mapping ids to lengths
