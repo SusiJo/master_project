@@ -1,0 +1,154 @@
+---
+title: "Batch Correction"
+output: html_notebook
+---
+
+This notebook serves to compute batch corrected read counts from nf-core/rnaseq/featureCounts output.
+The raw read counts will be batch corrected and then converted to TPM for clustering analysis and 
+ML in python.
+
+
+```{r Libraries}
+library(tidyverse)
+library(sva)
+library(tibble)
+```
+
+
+# Read FeatureCounts Data
+
+```{r }
+
+pancreas_data <- read.table("/Users/susanne/Documents/Master/Data/pancreas/merged_featureCounts_all_pancreas.txt", sep="\t", header=TRUE)
+pheno <- read.table("/Users/susanne/Documents/Master/Data/pancreas/metadata_all_pancreas_with_batches.csv", sep=";", header=TRUE)
+gene_lengths <- read.table("/Users/susanne/Documents/Master/Data/pancreas/featureCounts_geneLengths.txt", sep= ",", header=TRUE)
+
+# tidiverse object better for selecting data
+pancreas<- as_tibble(pancreas_data)
+# gene_ids, gene_names
+gene_id <- pancreas$GeneID
+gene_name <- pancreas$GeneName
+
+# selection of samples without gene_id, gene_name
+expr_df <- pancreas %>% select(3:ncol(pancreas))
+
+# ADJUST SAMPLE IDS BACK TO NORMAL
+# replace X in sample_name strings by ""
+sample_names <- sub("X", "", colnames(expr_df))
+# replace . by - in sample ids
+sample_names <- sample_names %>% str_replace_all("\\.", "\\-") 
+
+
+# sort sample names of pheno_table with batches according to order in pancreas_data‚
+sorted_pheno <- pheno[order(match(pheno[,1],sample_names)),]
+# sort geneIds of featureCounts_geneLenghts according to pancreas data GeneIds
+sorted_gene_lengths <- gene_lengths[order(match(gene_lengths[,1], pancreas_data$GeneID)),]
+
+
+# vector of batches
+batch_pancreas = sorted_pheno$Batch
+
+```
+
+
+# SVAseq: 
+
+
+
+## ComBat without model
+
+```{r ComBat}
+
+# parametric adjustment, consider plotting plots
+combat_edata1 = ComBat(dat=expr_df, batch=batch_pancreas, mod=NULL, par.prior=TRUE, prior.plots=FALSE)
+
+# convert combat batch corrected values to tpm
+combat_tpm_pancreas <- apply(combat_edata1, 2, tpm, lengths=sorted_gene_lengths$GeneLength)
+# convert to dataframe
+combat_pancreas_tpm_df <- data.frame(combat_tpm_pancreas)
+# append GeneId, GeneName to sample_names
+table_header <- append(c("GeneID", "GeneName"), sample_names, after=2)
+
+# add columns GeneId, GeneName to dataframe 
+combat_pancreas_tpm_df <- add_column(combat_pancreas_tpm_df, gene_id, .before=1)
+combat_pancreas_tpm_df <- add_column(combat_pancreas_tpm_df, gene_name, .before=2)
+
+colnames(combat_pancreas_tpm_df) <- table_header
+write.table(combat_pancreas_tpm_df, "/Users/susanne/Documents/Master/Data/pancreas/ComBat_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
+
+
+
+```
+
+
+## Combat with model
+
+```{r Combat model}
+# intercept, cancer, normal
+mod = model.matrix(~as.factor(Sample_Type), data=sorted_pheno)
+
+combat_edata3 = ComBat(dat=expr_df, batch=batch_pancreas, mod=mod, par.prior=TRUE)
+
+# convert combat batch corrected values to tpm
+combat_tpm_pancreas3 <- apply(combat_edata3, 2, tpm, lengths=sorted_gene_lengths$GeneLength)
+# convert to dataframe
+combat_pancreas_tpm_df3 <- data.frame(combat_tpm_pancreas3)
+# append GeneId, GeneName to sample_names
+table_header <- append(c("GeneID", "GeneName"), sample_names, after=2)
+
+# add columns GeneId, GeneName to dataframe 
+combat_pancreas_tpm_df3 <- add_column(combat_pancreas_tpm_df3, gene_id, .before=1)
+combat_pancreas_tpm_df3 <- add_column(combat_pancreas_tpm_df3, gene_name, .before=2)
+
+colnames(combat_pancreas_tpm_df3) <- table_header
+write.table(combat_pancreas_tpm_df3, "/Users/susanne/Documents/Master/Data/pancreas/ComBatModel_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
+
+```
+
+
+## CombatSeq
+
+```{r CombatSeq}
+
+# combat-seq takes as input a count matrix
+expr_mat <- as.matrix(expr_df)
+
+# use sorted batch variable
+condition <- as.numeric(as.factor(sorted_pheno$Sample_Type))
+
+# perform batch correction with condition and batches specified
+combatseq_counts_pancreas <- ComBat_seq(expr_mat, batch=batch_pancreas, group=condition, full_mod=TRUE)
+
+# conversion to TPM
+# APPLY(DATA, MARGIN (1 = ROWS, 2 = COLUMNS), FUNCTION)
+combatseq_tpm_pancreas <- apply(combatseq_counts_pancreas, 2, tpm, lengths=sorted_gene_lengths$GeneLength)
+
+# convert to dataframe
+combatseq_pancreas_tpm_df <- data.frame(combatseq_tpm_pancreas)
+
+# add columns GeneId, GeneName to dataframe 
+combatseq_pancreas_tpm_df <- add_column(combatseq_pancreas_tpm_df, gene_id, .before=1)
+combatseq_pancreas_tpm_df <- add_column(combatseq_pancreas_tpm_df, gene_name, .before=2)
+
+colnames(combatseq_pancreas_tpm_df) <- table_header
+
+write.table(combatseq_pancreas_tpm_df, "/Users/susanne/Documents/Master/Data/pancreas/CombatSeq_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
+
+
+```
+
+# TPM Function
+
+* [source](https://gist.github.com/slowkow/c6ab0348747f86e2748b)
+
+```{r TPM Function}
+
+# Function from 
+  tpm <- function(counts, lengths) {
+  rate <- counts / lengths
+  rate / sum(rate) * 1e6
+}
+```
+
+
+
