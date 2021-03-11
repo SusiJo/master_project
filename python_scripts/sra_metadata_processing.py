@@ -62,7 +62,8 @@ def main(xml, csv, outpath, csv_only):
 
 def parse_all_fields_csv(files, outpath):
     """Reads all csv files and produces one table with all fields
-    @:param files
+
+    :param files
     """
     p = Path(outpath)
     ext = p.suffix
@@ -77,10 +78,10 @@ def parse_all_fields_csv(files, outpath):
 
 
 def parse_xml(xml_files, csv_files):
-    """
-    Reads xml files which are not consistent
+    """Reads xml files which are not consistent
+
     :param xml_files
-    :param: csv_files
+    :param csv_files
     :return: metadata: dict
     """
     metadata = {}
@@ -187,10 +188,10 @@ def parse_xml(xml_files, csv_files):
 
 
 def write_xml_table(outpath, metadata):
-    """
-    Write table with csv and xml info to table
-    @:param: outpath
-    @:param: metadata: dict
+    """Write table with csv and xml info to table
+
+    :param outpath
+    :param metadata: dict
     """
     df = pd.DataFrame.from_dict(metadata, orient='index',
                                 columns=['Project', 'BioSample', 'Library_Strategy', 'Organism', 'Gender', 'Age',

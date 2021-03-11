@@ -95,16 +95,15 @@ def parse_featureCounts(files, genes):
             for gene_id, tpm_value in count_dict_one_file.items():
                 counts_all_files[gene_id].append(tpm_value)
 
-    # print(geneLengths_all_files)
     return counts_all_files, gene_dict, geneLengths_all_files
 
 
 def write_lengths(geneLengths_all_files, outpath):
-    """
-    Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output
+    """Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output
+
     Comprises all non-overlapping bases in exons belonging to the same gene
-    :param: geneLenghts_all_files
-    :param: outpath
+    :param geneLengths_all_files:  gene_ids mapped to gene_lenghts
+    :param outpath
     """
     table = pd.DataFrame.from_dict(geneLengths_all_files, orient='index', columns=['GeneLength'])
     table.reset_index(level=0, inplace=True)

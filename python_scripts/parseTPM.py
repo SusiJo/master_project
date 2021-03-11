@@ -47,11 +47,10 @@ def main(inpath, genes, outpath):
 
 
 def parse_stringTie(files, genes):
-    """
-    Read a file and save gene_ids and tmp_values
-    Adapted from Steffen Lemke
-    :param: files: list of files
-    :param: genes: dict mapping gene_ids to gene_names
+    """Read a file and save gene_ids and tmp_values, adapted from Steffen Lemke
+
+    :param files: list of files
+    :param genes: dict mapping gene_ids to gene_names
     :return: tpm_all_files
     :return: gene_dict
     """

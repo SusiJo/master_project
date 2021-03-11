@@ -55,10 +55,10 @@ def main(file_endpt, donor_endpt, outpath):
 
 
 def parse_icgc_json_files(files, donors):
-    """
-    Read json files from FILE & DONOR ENDPOINT and extract relevant values
-    :param: list of paths to files, FILE ENDPOINT
-    :param: list of paths  to files, DONOR ENDPOINT
+    """Read json files from FILE & DONOR ENDPOINT and extract relevant values
+
+    :param files: list of paths to json_files, FILE ENDPOINT
+    :param donors: list of paths to json_files, DONOR ENDPOINT
     :return: metadata dictionary
     """
 
@@ -138,10 +138,10 @@ def parse_icgc_json_files(files, donors):
 
 
 def write_icgc_table(outpath, metadata):
-    """
-    Write metadata to table
-    :param: path to store output table, CSV FORMAT
-    :param: metadata dictionary
+    """Write metadata to table
+
+    :param outpath: to store output table, CSV FORMAT
+    :param metadata: dictionary
     :return: metadata table
     """
     # PACA_CA needs 'Specimen_Type'

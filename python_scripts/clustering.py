@@ -81,9 +81,9 @@ def main(inpath, outpath, metadata, pca, tsne, umap, comparison, silhouette):
 
 
 def read_metadata(metadata, sample_ids):
-    """
-    Read in metadata file csv format
+    """Read in metadata file csv format
     FileID, SampleType, CaseID, Project
+
     :return: meta_dict
     :return: target_names: dict
     :return: target: array
@@ -108,7 +108,6 @@ def read_metadata(metadata, sample_ids):
             target_names[e] = meta_dict[e][0]
 
     target = [0 if value == 'normal' else 1 for key, value in target_names.items()]
-
 
     # Create Dataframe object for annotations for plots
     # sort the metadata
@@ -146,9 +145,9 @@ def read_metadata(metadata, sample_ids):
 
 
 def scaling(data):
-    """
-    Scaling with MinMax to range (-1,1)
-    :param: data: numpy array
+    """Scaling with MinMax to range (-1,1)
+
+    :param data: numpy array
     :return: scaled_data
     """
     scaler = preprocessing.MinMaxScaler()
@@ -158,14 +157,13 @@ def scaling(data):
 
 
 def visualization_plots(data, target, outpath, method=str, title_dataset=str):
-    """
-    Creates interactive plotly graphs with reduced dimensions
-    with tooltip displaying metadata
-    :param: data
-    :param: target
-    :param: outpath
-    :param: method: str
-    :param: title_dataset: str
+    """Creates interactive plotly graphs with reduced dimensions with tooltip displaying metadata
+
+    :param data
+    :param target
+    :param outpath
+    :param method: str
+    :param title_dataset: str
     """
     if method == 'pca':
         print("Performing pca for plotting...")
@@ -214,12 +212,11 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
 
 
 def comparison_dim_reduction(X, target, outpath):
-    """
-    Main code from scikit-learn
-    create comparative plot with different reduction methods
-    :param: X: data
-    :param: target
-    :param: outpath
+    """Main code from scikit-learn to create comparative plots with different reduction methods
+
+    :param X: data
+    :param target
+    :param outpath
     """
     # Create figure
     fig = plt.figure(figsize=(15, 5))
@@ -255,8 +252,9 @@ def comparison_dim_reduction(X, target, outpath):
 
 def silhouette_plot(data, target):
     """Determine good number of clusters
-    :param: data
-    :param: target
+
+    :param data
+    :param target
     """
     fig, ax = plt.subplots()
     ax.set_title("The silhouette plot")

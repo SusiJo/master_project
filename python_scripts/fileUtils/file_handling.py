@@ -5,9 +5,11 @@ import glob
 
 def get_files(inpath, ext):
     """Create list of files
+
     :param inpath
-    :param ext of files
-    :return: list of files"""
+    :param ext: of files
+    :return: list of files
+    """
     os.chdir(inpath)
     files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
     return files
@@ -15,9 +17,11 @@ def get_files(inpath, ext):
 
 def get_files_and_sample_ids(inpath, ext):
     """Create list of files
-    :param: inpath to files
-    :param: file extension
-    :return list of files, list of sample_ids"""
+
+    :param inpath: to files
+    :param ext: file extension
+    :return: list of files, list of sample_ids
+    """
     os.chdir(inpath)
     files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
     sample_ids = []
@@ -36,8 +40,10 @@ def get_files_and_sample_ids(inpath, ext):
 
 def read_unique_genes(genes):
     """Read genes from rnaseq pipeline
-    :param: genes
-    :return: gene_dict: mapping ids to names"""
+
+    :param genes
+    :return: gene_dict: mapping ids to names
+    """
     gene_dict = {}
     with open(genes, 'r') as f:
         for line in f.readlines():
@@ -49,12 +55,13 @@ def read_unique_genes(genes):
 
 
 def write_table(gene_dict, sample_ids, all_files, outpath):
-    """Create tab separated table with merged values
-    Adapted from Steffen Lemke
-    :param: gene_dict: gene_ids mapped to gene_names
-    :param: sample_ids
-    :param: allfiles
-    :param: outpath"""
+    """Create tab separated table with merged values, adapted from Steffen Lemke
+
+    :param gene_dict: gene_ids mapped to gene_names
+    :param sample_ids: array
+    :param all_files: dict
+    :param outpath
+    """
 
     with open(outpath, 'w') as table:
         # .join(list) iterates over ids
@@ -72,7 +79,8 @@ def write_table(gene_dict, sample_ids, all_files, outpath):
 
 def read_tpm(infile):
     """Reads TPM values from merged file into floats
-    :param: infile: merged TPM values
+
+    :param infile: merged TPM values
     :return: sample_ids, gene_ids, gene_names, data_list
     """
 
@@ -111,8 +119,8 @@ def read_tpm(infile):
 
 
 def parse_csv(files):
-    """
-    Parse csv files
+    """Parse csv files
+
     :param files: list of files
     :return: srr_metadata: metadata dictionary
     """

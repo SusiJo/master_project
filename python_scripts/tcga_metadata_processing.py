@@ -55,10 +55,10 @@ def main(inpath, outpath):
 
 
 def parse_tcga_json_files(files):
-    """
-    Read json files from list and extract relevant values
+    """Read json files from list and extract relevant values
+
     :param files: list of files
-    :return metadata: dictionary
+    :return: metadata: dictionary
     """
 
     metadata = {}
@@ -108,10 +108,10 @@ def parse_tcga_json_files(files):
 
 
 def write_tcga_table(outpath, metadata):
-    """
-    Write metadata to table
-    :param: outpath: to metadata_table, CSV
-    :param: metadata: dict
+    """Write metadata to table
+
+    :param outpath: to metadata_table, CSV
+    :param metadata: dict
     """
     table = pd.DataFrame.from_dict(metadata, orient='index',
                                    columns=['Submitter_ID', 'Case_ID', 'Project', 'Primary_site', 'Sample_type',

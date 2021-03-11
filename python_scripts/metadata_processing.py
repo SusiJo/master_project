@@ -25,12 +25,6 @@ import fileUtils.file_handling as fh
               help='Table with metadata in csv format [Sample_ID, Case_ID, Condition, Project]',
               required=True)
 def main(icgc, sra, tcga, outpath):
-    """
-    :param icgc: path to icgc data
-    :param sra: path to sra data
-    :param tcga: path to tcga data
-    :param outpath
-    """
     dfs = list()
 
     # ICGC (several folders can be given)
@@ -73,10 +67,10 @@ def main(icgc, sra, tcga, outpath):
 
 
 def parse_tcga_json_files(files):
-    """
-    Read json files from list and extract relevant values
+    """Read json files from list and extract relevant values
+
     :param files: list of files
-    :return tcga_metadata: dict
+    :return: tcga_metadata: dict
     """
 
     tcga_metadata = {}
@@ -102,10 +96,9 @@ def parse_tcga_json_files(files):
 
 
 def parse_icgc_json_files(files):
-    """
-    Read json files from list and extract relevant values
+    """Read json files from list and extract relevant values
     :param files
-    :return icgc_metadata: dict
+    :return: icgc_metadata: dict
     """
 
     icgc_metadata = {}
@@ -116,7 +109,6 @@ def parse_icgc_json_files(files):
         file = file.split('/')[-1]
         with open(file) as json_file:
             data = json.load(json_file)
-
             file_id = os.path.basename(file).split(".")[0]
             file_name = os.path.basename(file).split(".")[1]
             donor_id = dictor(data, "donors.0.donorId")
