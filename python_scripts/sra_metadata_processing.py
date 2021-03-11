@@ -63,8 +63,8 @@ def main(xml, csv, outpath, csv_only):
 def parse_all_fields_csv(files, outpath):
     """Reads all csv files and produces one table with all fields
 
-    :param files
-    :param outpath
+    :param files: as list
+    :param outpath: to table .csv
     """
     p = Path(outpath)
     ext = p.suffix

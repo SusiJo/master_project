@@ -159,11 +159,11 @@ def scaling(data):
 def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     """Creates interactive plotly graphs with reduced dimensions with tooltip displaying metadata
 
-    :param data
-    :param target
-    :param outpath
-    :param method
-    :param title_dataset
+    :param data: numpy array
+    :param target: list
+    :param outpath: to folder for images .png, .html
+    :param method: one of [pca, tsne, umap]
+    :param title_dataset: i.e. Pancreas ComBat corrected
     """
     if method == 'pca':
         print("Performing pca for plotting...")
@@ -215,8 +215,8 @@ def comparison_dim_reduction(X, target, outpath):
     """Main code from scikit-learn to create comparative plots with different reduction methods
 
     :param X: data
-    :param target
-    :param outpath
+    :param target: list
+    :param outpath: to store image .png
     """
     # Create figure
     fig = plt.figure(figsize=(15, 5))
