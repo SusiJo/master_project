@@ -253,8 +253,8 @@ def comparison_dim_reduction(X, target, outpath):
 def silhouette_plot(data, target):
     """Determine good number of clusters
 
-    :param data
-    :param target
+    :param data: numpy array
+    :param target: list
     """
     fig, ax = plt.subplots()
     ax.set_title("The silhouette plot")

@@ -69,7 +69,7 @@ def main(icgc, sra, tcga, outpath):
 def parse_tcga_json_files(files):
     """Read json files from list and extract relevant values
 
-    :param files: list of files
+    :param files: as list
     :return: tcga_metadata: dict
     """
 
@@ -97,7 +97,8 @@ def parse_tcga_json_files(files):
 
 def parse_icgc_json_files(files):
     """Read json files from list and extract relevant values
-    :param files
+
+    :param files: as list
     :return: icgc_metadata: dict
     """
 

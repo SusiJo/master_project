@@ -64,6 +64,7 @@ def parse_all_fields_csv(files, outpath):
     """Reads all csv files and produces one table with all fields
 
     :param files
+    :param outpath
     """
     p = Path(outpath)
     ext = p.suffix
@@ -80,8 +81,8 @@ def parse_all_fields_csv(files, outpath):
 def parse_xml(xml_files, csv_files):
     """Reads xml files which are not consistent
 
-    :param xml_files
-    :param csv_files
+    :param xml_files: as list
+    :param csv_files: as list
     :return: metadata: dict
     """
     metadata = {}

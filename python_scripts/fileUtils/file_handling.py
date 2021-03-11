@@ -6,9 +6,9 @@ import glob
 def get_files(inpath, ext):
     """Create list of files
 
-    :param inpath
+    :param inpath: to folder
     :param ext: of files
-    :return: list of files
+    :return: files: list
     """
     os.chdir(inpath)
     files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
@@ -20,7 +20,8 @@ def get_files_and_sample_ids(inpath, ext):
 
     :param inpath: to files
     :param ext: file extension
-    :return: list of files, list of sample_ids
+    :return: files: as list
+    :return: sample_ids: as list
     """
     os.chdir(inpath)
     files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
@@ -33,7 +34,6 @@ def get_files_and_sample_ids(inpath, ext):
         else:
             # print(file.split("_")[0])
             sample_ids.append(file.split("_")[0])
-    # print(sample_ids)
 
     return files, sample_ids
 
@@ -41,7 +41,7 @@ def get_files_and_sample_ids(inpath, ext):
 def read_unique_genes(genes):
     """Read genes from rnaseq pipeline
 
-    :param genes
+    :param genes: genes_id mapped to name
     :return: gene_dict: mapping ids to names
     """
     gene_dict = {}
@@ -81,7 +81,10 @@ def read_tpm(infile):
     """Reads TPM values from merged file into floats
 
     :param infile: merged TPM values
-    :return: sample_ids, gene_ids, gene_names, data_list
+    :return: sample_ids
+    :return: gene_ids
+    :return: gene_names
+    :return data_list
     """
 
     tmp = []
