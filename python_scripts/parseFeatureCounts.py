@@ -100,8 +100,8 @@ def parse_featureCounts(files, genes):
 
 def write_lengths(geneLengths_all_files, outpath):
     """Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output
-
     Comprises all non-overlapping bases in exons belonging to the same gene
+
     :param geneLengths_all_files:  gene_ids mapped to gene_lenghts
     :param outpath
     """

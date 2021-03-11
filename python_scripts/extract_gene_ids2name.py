@@ -43,8 +43,9 @@ def parse(line):
 def create_dict(path):
     """Save unique gene ids and names to dict
 
-    :param path to gtf file
-    :return: gene_dict mapping gene_ids to gene_names"""
+    :param path: to gtf file
+    :return: gene_dict mapping gene_ids to gene_names
+    """
     id_name_dict = {}
     # iterate through generator object
     gene_dict = lines(path)

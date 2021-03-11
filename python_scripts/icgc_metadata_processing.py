@@ -55,17 +55,17 @@ def main(file_endpt, donor_endpt, outpath):
 
 
 def parse_icgc_json_files(files, donors):
-    """Read json files from FILE & DONOR ENDPOINT and extract relevant values
+    """Read json files from file & donor endpoint and extract relevant values
 
-    :param files: list of paths to json_files, FILE ENDPOINT
-    :param donors: list of paths to json_files, DONOR ENDPOINT
+    :param files: list of paths to json_files, file endpoint
+    :param donors: list of paths to json_files, donor endpoint
     :return: metadata dictionary
     """
 
     metadata = {}
     specimen_ids = []
 
-    """Parse FILE ENDPOINT info store in metadata dict"""
+    # Parse file endpoint info store in metadata dict
     for f in files:
         # split absolute path to get basename
         file = f.split('/')[-1]
@@ -88,7 +88,7 @@ def parse_icgc_json_files(files, donors):
                 # PACA_CA needs , specimen_type
                 metadata[file_id] = [file_name, donor_id, project, sample_id, specimen_id]
 
-    """Parse DONOR ENDPOINT info and append to metadata dict"""
+    # Parse donor endpoint info and append to metadata dict
     for d in donors:
         # print(d)
         donor = d.split('/')[-1]
@@ -140,7 +140,7 @@ def parse_icgc_json_files(files, donors):
 def write_icgc_table(outpath, metadata):
     """Write metadata to table
 
-    :param outpath: to store output table, CSV FORMAT
+    :param outpath: to store output table .csv
     :param metadata: dictionary
     :return: metadata table
     """

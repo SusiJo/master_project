@@ -110,7 +110,7 @@ def parse_tcga_json_files(files):
 def write_tcga_table(outpath, metadata):
     """Write metadata to table
 
-    :param outpath: to metadata_table, CSV
+    :param outpath: to metadata_table .csv
     :param metadata: dict
     """
     table = pd.DataFrame.from_dict(metadata, orient='index',

@@ -162,8 +162,8 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     :param data
     :param target
     :param outpath
-    :param method: str
-    :param title_dataset: str
+    :param method
+    :param title_dataset
     """
     if method == 'pca':
         print("Performing pca for plotting...")

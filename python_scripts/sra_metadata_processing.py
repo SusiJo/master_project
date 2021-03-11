@@ -191,7 +191,7 @@ def parse_xml(xml_files, csv_files):
 def write_xml_table(outpath, metadata):
     """Write table with csv and xml info to table
 
-    :param outpath
+    :param outpath: path to output table .csv
     :param metadata: dict
     """
     df = pd.DataFrame.from_dict(metadata, orient='index',
@@ -201,7 +201,6 @@ def write_xml_table(outpath, metadata):
 
     df.reset_index(level=0, inplace=True)
     df.rename({'index': 'RunID'}, axis=1, inplace=True)
-    # print(df)
     df.to_csv(outpath, header=True, index=False)
 
 
