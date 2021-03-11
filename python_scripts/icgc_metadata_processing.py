@@ -10,6 +10,7 @@ import time
 import json
 from dictor import dictor
 import pandas as pd
+import fileUtils.file_handling as fh
 
 # Create logger
 logger = logging.getLogger('Json parser')
@@ -38,10 +39,10 @@ def main(file_endpt, donor_endpt, outpath):
 
     # printed to STDOUT on command line
     logger.info('Get json files FILE endpoint')
-    allfiles = get_files(file_endpt, '*.json')
+    allfiles = fh.get_files(file_endpt, '*.json')
 
     logger.info('Get json files DONOR endpoint')
-    donorfiles = get_files(donor_endpt, '*.json')
+    donorfiles = fh.get_files(donor_endpt, '*.json')
 
     logger.info('Parse json files')
     metadata_allfiles = parse_icgc_json_files(allfiles, donorfiles)
@@ -53,22 +54,12 @@ def main(file_endpt, donor_endpt, outpath):
     logger.info('Process finished in ' + str(round(end_time - start_time, 2)) + "sec")
 
 
-def get_files(inpath, ext):
-    """Create list of json files
-    @:param: path to files
-    @:param: file extension, json
-    @:return: list of files
-    """
-    os.chdir(inpath)
-    files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
-    return files
-
-
 def parse_icgc_json_files(files, donors):
-    """Read json files from FILE & DONOR ENDPOINT and extract relevant values
-    @:param: list of paths to files, FILE ENDPOINT
-    @:param: list of paths  to files, DONOR ENDPOINT
-    @:return: metadata dictionary
+    """
+    Read json files from FILE & DONOR ENDPOINT and extract relevant values
+    :param: list of paths to files, FILE ENDPOINT
+    :param: list of paths  to files, DONOR ENDPOINT
+    :return: metadata dictionary
     """
 
     metadata = {}
@@ -85,6 +76,8 @@ def parse_icgc_json_files(files, donors):
             file_name = os.path.basename(file).split(".")[1]
             donor_id = dictor(data, "donors.0.donorId")
             specimen_type = dictor(data, "donors.0.specimenType.0")
+            project = dictor(data, "donors.0.projectCode")
+            # print(specimen_type)
             # print(dictor(data, "donors.0.specimenType.0"))
             sample_id = dictor(data, "donors.0.sampleId.0")
             specimen_id = dictor(data, "donors.0.specimenId.0")
@@ -92,7 +85,8 @@ def parse_icgc_json_files(files, donors):
             specimen_ids.append(specimen_id)
 
             if file_id not in metadata.keys():
-                metadata[file_id] = [file_name, donor_id, sample_id, specimen_id, specimen_type]
+                # PACA_CA needs , specimen_type
+                metadata[file_id] = [file_name, donor_id, project, sample_id, specimen_id]
 
     """Parse DONOR ENDPOINT info and append to metadata dict"""
     for d in donors:
@@ -124,6 +118,7 @@ def parse_icgc_json_files(files, donors):
                             # print(e['type'])
                             # extract sample type
                             sample_type = e['type']
+                            # print(sample_type)
                             # primary_diagnosis = e['tumourHistologicalType'] # not found for some!!
 
             for k, v in metadata.items():
@@ -143,15 +138,17 @@ def parse_icgc_json_files(files, donors):
 
 
 def write_icgc_table(outpath, metadata):
-    """Write metadata to table
-    @:param: path to store output table, CSV FORMAT
-    @:param: metadata dictionary
-    @:return: metadata table
     """
+    Write metadata to table
+    :param: path to store output table, CSV FORMAT
+    :param: metadata dictionary
+    :return: metadata table
+    """
+    # PACA_CA needs 'Specimen_Type'
     table = pd.DataFrame.from_dict(metadata, orient='index',
-                                   columns=['File_Name', 'Donor_ID', 'Sample_Id', 'Specimen_Id', 'Specimen_Type',
-                                            'Sample_Type', 'Primary_Site', 'Primary_diagnosis', 'Tumor_Subtype', 'Gender',
-                                            'Vital_status', 'Age_at_index', 'Survival_Time', 'Tumor_stage', 'Icd10'])
+                                   columns=['File_name', 'Donor_ID', 'Project', 'Sample_ID', 'Specimen_ID',
+                                            'Sample_type', 'Primary_site', 'Primary_diagnosis', 'Tumor_subtype', 'Gender',
+                                            'Vital_status', 'Age_at_index', 'Survival_time', 'Tumor_stage', 'Icd10'])
 
     table.reset_index(level=0, inplace=True)
     table.rename({'index': 'File_ID'}, axis=1, inplace=True)

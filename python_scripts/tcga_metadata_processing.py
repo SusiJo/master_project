@@ -16,6 +16,7 @@ import time
 import json
 from dictor import dictor
 import pandas as pd
+import fileUtils.file_handling as fh
 
 
 # Create logger
@@ -41,33 +42,23 @@ def main(inpath, outpath):
     start_time = time.time()
     # printed to STDOUT on command line
     logger.info('Get json files')
-    allfiles = get_files(inpath, '*.json')
+    allfiles = fh.get_files(inpath, '*.json')
 
     logger.info('Parse json files')
     metadata_allfiles = parse_tcga_json_files(allfiles)
 
     logger.info('Write metadata to table')
-    table = write_tcga_table(outpath, metadata_allfiles)
+    write_tcga_table(outpath, metadata_allfiles)
 
     end_time = time.time()
     logger.info('Process finished in ' + str(round(end_time - start_time, 2)) + "sec")
 
 
-def get_files(inpath, ext):
-    """Create list of files
-    @:param: inpath: to folder with files
-    @:param: ext: file extension
-    @:return: files: list of files
-    """
-    os.chdir(inpath)
-    files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
-    return files
-
-
 def parse_tcga_json_files(files):
-    """Read json files from list and extract relevant values
-    @:param files: list of files
-    @:return metadata: dictionary
+    """
+    Read json files from list and extract relevant values
+    :param files: list of files
+    :return metadata: dictionary
     """
 
     metadata = {}
@@ -80,16 +71,12 @@ def parse_tcga_json_files(files):
         with open(file) as json_file:
             data = json.load(json_file)
             tumor_stage = ''
-            # print(data['data'].get('cases'))
-            # for e in data['data'].get('cases'):
-            #    print(e.get('case_id'))
-
             file_id = os.path.basename(file).split(".")[0]
             case_id = dictor(data, "data.cases.0.case_id")
             submitter_id = dictor(data, "data.submitter_id")  # = file_name
             # file_name = dictor(data, "data.file_name")
-            primary_site = dictor(data, "data.cases.0.primary_site")
             sample_type = dictor(data, "data.cases.0.samples.0.sample_type")
+            project = dictor(data, "data.cases.0.project.project_id")
             # print(sample_type)
             # if re.search(normal_pattern, sample_type):
             #     sample_type = "normal"
@@ -105,6 +92,7 @@ def parse_tcga_json_files(files):
             if stage in tumor_stages.keys():
                 tumor_stage = tumor_stages.get(stage)
 
+            primary_site = dictor(data, "data.cases.0.diagnoses.0.site_of_resection_or_biopsy")
             diagnosisIcd10 = dictor(data, "data.cases.0.diagnoses.0.icd_10_code")
             if re.search(dead, vital_status):
                 survival_time = dictor(data, "data.cases.0.demographic.days_to_death")
@@ -113,25 +101,25 @@ def parse_tcga_json_files(files):
 
             # Save to dictionary
             if file_id not in metadata.keys():
-                metadata[file_id] = [case_id, submitter_id, primary_site, sample_type, primary_diagnosis,
+                metadata[file_id] = [submitter_id, case_id, project, primary_site, sample_type, primary_diagnosis,
                                      gender, vital_status, age_at_index, survival_time, tumor_stage, diagnosisIcd10]
 
     return metadata
 
 
 def write_tcga_table(outpath, metadata):
-    """Write metadata to table
-    @:param: outpath: to metadata_table, CSV
-    @:param: metadata: dict
-    @:return: metadata: table"""
+    """
+    Write metadata to table
+    :param: outpath: to metadata_table, CSV
+    :param: metadata: dict
+    """
     table = pd.DataFrame.from_dict(metadata, orient='index',
-                                   columns=['Case_ID', 'Submitter_ID', 'Primary_Site', 'Sample_Type',
+                                   columns=['Submitter_ID', 'Case_ID', 'Project', 'Primary_site', 'Sample_type',
                                             'Primary_diagnosis', 'Gender', 'Vital_status', 'Age_at_index',
-                                            'Survival_Time', 'Tumor_stage', 'Icd10'])
+                                            'Survival_time', 'Tumor_stage', 'Icd10'])
     table.reset_index(level=0, inplace=True)
     table.rename({'index': 'File_ID'}, axis=1, inplace=True)
     table.to_csv(outpath, index=False)
-    return table
 
 
 if __name__ == "__main__":

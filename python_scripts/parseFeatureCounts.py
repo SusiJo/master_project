@@ -6,10 +6,10 @@ import time
 import sys
 import pandas as pd
 from pathlib import Path
-import stringTieUtils.file_handling as fh
+import fileUtils.file_handling as fh
 
 # Create logger
-logger = logging.getLogger('TPM table creator')
+logger = logging.getLogger('FeatureCounts table creator')
 # Create console handler
 ch = logging.StreamHandler()
 # Create formatter
@@ -38,7 +38,7 @@ def main(inpath, genes, outpath, lengths):
 
     # printed to STDOUT on command line
     logger.info('Get featureCount input files')
-    allfiles, sample_ids = fh.get_files(inpath)
+    allfiles, sample_ids = fh.get_files_and_sample_ids(inpath, '*.txt')
 
     logger.info('Parse featureCount files')
     gene_counts, gene_dict, gene_lengths = parse_featureCounts(allfiles, genes)
@@ -54,8 +54,15 @@ def main(inpath, genes, outpath, lengths):
 
 
 def parse_featureCounts(files, genes):
-    """Read a file and the sample ID and save gene_ids and tmp_values
-    Adapted from Steffen Lemke"""
+    """
+    Read a file and the sample ID and save gene_ids and tmp_values
+    Adapted from Steffen Lemke
+    :param: files: list of files
+    :param: genes: dict mapping gene_ids to gene_names
+    :return: counts_all_files
+    :return: gene_dict
+    :return: geneLengths_all_files
+    """
     gene_dict = fh.read_unique_genes(genes)
 
     # initialize dict with keys from gene_dict and empty list as value --> where the tmp values are to be stored
@@ -94,10 +101,13 @@ def parse_featureCounts(files, genes):
 
 
 def write_lengths(geneLengths_all_files, outpath):
-    """Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output
-       Comprises all non-overlapping bases in exons belonging to the same gene"""
-    table = pd.DataFrame.from_dict(geneLengths_all_files, orient='index',
-                                  columns=['GeneLength'])
+    """
+    Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output
+    Comprises all non-overlapping bases in exons belonging to the same gene
+    :param: geneLenghts_all_files
+    :param: outpath
+    """
+    table = pd.DataFrame.from_dict(geneLengths_all_files, orient='index', columns=['GeneLength'])
     table.reset_index(level=0, inplace=True)
     table.rename({'index': 'GeneID'}, axis=1, inplace=True)
     p = Path(outpath)

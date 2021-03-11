@@ -7,7 +7,7 @@ def get_files(inpath, ext):
     """Create list of files
     :param inpath
     :param ext of files
-    @:return: list of files"""
+    :return: list of files"""
     os.chdir(inpath)
     files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
     return files
@@ -15,9 +15,9 @@ def get_files(inpath, ext):
 
 def get_files_and_sample_ids(inpath, ext):
     """Create list of files
-    @:param: inpath to files
-    @:param: file extension
-    @:return list of files, list of sample_ids"""
+    :param: inpath to files
+    :param: file extension
+    :return list of files, list of sample_ids"""
     os.chdir(inpath)
     files = [os.path.abspath(os.path.basename(f)) for f in glob.glob(inpath + ext)]
     sample_ids = []
@@ -36,8 +36,8 @@ def get_files_and_sample_ids(inpath, ext):
 
 def read_unique_genes(genes):
     """Read genes from rnaseq pipeline
-    @:param: genes
-    @:return: gene_dict: mapping ids to names"""
+    :param: genes
+    :return: gene_dict: mapping ids to names"""
     gene_dict = {}
     with open(genes, 'r') as f:
         for line in f.readlines():
@@ -50,11 +50,11 @@ def read_unique_genes(genes):
 
 def write_table(gene_dict, sample_ids, all_files, outpath):
     """Create tab separated table with merged values
-    From Steffen Lemke
-    @:param: gene_dict: gene_ids mapped to gene_names
-    @:param: sample_ids
-    @:param: allfiles
-    @:param: outpath"""
+    Adapted from Steffen Lemke
+    :param: gene_dict: gene_ids mapped to gene_names
+    :param: sample_ids
+    :param: allfiles
+    :param: outpath"""
 
     with open(outpath, 'w') as table:
         # .join(list) iterates over ids
@@ -72,15 +72,14 @@ def write_table(gene_dict, sample_ids, all_files, outpath):
 
 def read_tpm(infile):
     """Reads TPM values from merged file into floats
-    @:param: infile: merged TPM values
-    @:return: sample_ids, gene_ids, gene_names, data_list
+    :param: infile: merged TPM values
+    :return: sample_ids, gene_ids, gene_names, data_list
     """
 
     tmp = []
     gene_names = []
     gene_ids = []
     header = []
-    sample_ids = []
     with open(infile, 'r') as file:
 
         for i, line in enumerate(file):
@@ -111,3 +110,34 @@ def read_tpm(infile):
     return sample_ids, gene_ids, gene_names, data_list
 
 
+def parse_csv(files):
+    """
+    Parse csv files
+    :param files: list of files
+    :return: srr_metadata: metadata dictionary
+    """
+
+    srr_metadata = {}
+    is_tumor = ''
+    for file in files:
+        # Read each file
+        file = file.split('/')[-1]
+        with open(file, 'r') as f:
+            # strip lines to not read empty  lines
+            lines = list(line for line in (l.strip() for l in f) if line)
+            for i, l in enumerate(lines):
+                # skip header
+                if i == 0:
+                    continue
+                fields = l.split(",")
+                run = fields[0]
+                bio_project = fields[21]
+                bio_sample = fields[25]
+                if fields[36] == 'no':
+                    is_tumor = 'normal'
+                if fields[36] == 'yes':
+                    is_tumor = 'tumor'
+                if run not in srr_metadata:
+                    srr_metadata[run] = [bio_sample, is_tumor, bio_project]
+
+    return srr_metadata

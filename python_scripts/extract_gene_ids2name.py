@@ -7,14 +7,17 @@ import re
 
 
 def lines(genes):
-    """Generator for lines in gtf file"""
+    """Generator for lines in gtf file
+    @:param genes.gtf"""
     with open(genes, 'r') as g:
         for line in g:
             yield parse(line)
 
 
 def parse(line):
-    """Parse ;-sep line of gtf file"""
+    """Parse ;-sep line of gtf file
+    @:param: line of gtf file
+    @:return: gene_dict"""
     gene_dict = {}
     # split by tab and only save last column with attribute list
     info_list = line.strip().split("\t")[-1]
@@ -35,7 +38,9 @@ def parse(line):
 
 
 def create_dict(path):
-    """Save unique gene ids and names to dict"""
+    """Save unique gene ids and names to dict
+    @:param:
+    @:return: gene_dict mapping gene_ids to gene_names"""
     id_name_dict = {}
     # iterate through generator object
     gene_dict = lines(path)
@@ -52,9 +57,11 @@ def create_dict(path):
 
 
 def write_genes(path, outfile):
-    """Call other functions"""
+    """Write genes2names into table
+    @:param: path to genes.gtf
+    """
     gene_id_name_dict = create_dict(path)
-    """Write dictionary to txt file"""
+
     with open(outfile, 'w') as file:
         for key, value in gene_id_name_dict.items():
             file.write("{0}{1}{2}{3}".format(key, "\t", value, "\n"))
