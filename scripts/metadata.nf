@@ -34,18 +34,15 @@ process get_metadata {
 	val run_acc from ch_accessions 		
 
 	output:
-	//file "[S,E,D]RR*[0-9].xml"
+	file "[S,E,D]RR*[0-9].xml"
 	file "[S,E,D]RR*[0-9].csv"		
 
 	script:
         def acc = run_acc
-	//def experiment_url = "${params.experiment}" + "${acc}"	wget '${experiment_url}' -nv -O ${acc}.xml curl '${experiment_url}' -s --output ${acc}.xml
+	def experiment_url = "${params.experiment}" + "${acc}"	
 	def runinfo_url = "${params.runinfo}" + "${acc}"	
 	"""	
-	if [ -x /usr/bin/wget ] ; then		
-		wget '${runinfo_url}' -nv -O ${acc}.csv
-	else
-		curl '${runinfo_url}' -s --output ${acc}.csv
-	fi	
+	wget '${experiment_url}' -nv -O ${acc}.xml
+	wget '${runinfo_url}' -nv -O ${acc}.csv
 	"""	
 }
