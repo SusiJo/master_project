@@ -60,7 +60,7 @@ def write_table(gene_dict, sample_ids, all_files, outpath):
     :param gene_dict: gene_ids mapped to gene_names
     :param sample_ids: array
     :param all_files: dict
-    :param outpath
+    :param outpath: path where to store outfile, tsv
     """
     with open(outpath, 'w') as table:
         # .join(list) iterates over ids
@@ -83,7 +83,7 @@ def read_tpm(infile):
     :return: sample_ids
     :return: gene_ids
     :return: gene_names
-    :return data_list
+    :return: data_list
     """
     tmp = []
     gene_names = []
