@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>metadata_processing &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ml-test.html">Machine Learning workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">python_scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>metadata_processing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for metadata_processing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; This script serves to process metadata from TCGA, ICGC, SRA and outputs a standardized table</span>
+<span class="sd">    Metadata Table [sample_id, case_id, condition, bio_project]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># imports</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">dictor</span> <span class="kn">import</span> <span class="n">dictor</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">fileUtils.file_handling</span> <span class="k">as</span> <span class="nn">fh</span>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--icgc&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;paths to ICGC json metadata files&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to folder with ICGC metadata in json format&#39;</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--sra&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path to SRA csv metadata files&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to folder with SRA metadata in csv format&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;--tcga&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;paths to TCGA json metadata files&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to folder with TCGA metadata in json format&#39;</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--outpath&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;output path for storing metadata table&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Table with metadata in csv format [Sample_ID, Case_ID, Condition, Project]&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">icgc</span><span class="p">,</span> <span class="n">sra</span><span class="p">,</span> <span class="n">tcga</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="n">dfs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+    <span class="c1"># ICGC (several folders can be given)</span>
+    <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">icgc</span><span class="p">:</span>
+        <span class="c1"># print(folder)</span>
+        <span class="n">icgc_files</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_files</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;*.json&#39;</span><span class="p">)</span>
+        <span class="n">icgc_metadata</span> <span class="o">=</span> <span class="n">parse_icgc_json_files</span><span class="p">(</span><span class="n">icgc_files</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">icgc_metadata</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                                 <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Case&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample_Type&#39;</span><span class="p">,</span> <span class="s1">&#39;Project&#39;</span><span class="p">])</span>
+
+        <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;File_ID&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="c1"># SRA (assumed to be in one folder)</span>
+    <span class="n">sra_files</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_files</span><span class="p">(</span><span class="n">sra</span><span class="p">,</span> <span class="s1">&#39;*.csv&#39;</span><span class="p">)</span>
+    <span class="n">sra_metadata</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">parse_csv</span><span class="p">(</span><span class="n">sra_files</span><span class="p">)</span>
+    <span class="n">df_sra</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">sra_metadata</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Case&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample_Type&#39;</span><span class="p">,</span> <span class="s1">&#39;Project&#39;</span><span class="p">])</span>
+
+    <span class="n">df_sra</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df_sra</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;File_ID&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_sra</span><span class="p">)</span>
+
+    <span class="c1"># TCGA (several folders can be given)</span>
+    <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">tcga</span><span class="p">:</span>
+        <span class="c1"># print(folder)</span>
+        <span class="n">tcga_files</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_files</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;*.json&#39;</span><span class="p">)</span>
+        <span class="n">tcga_metadata</span> <span class="o">=</span> <span class="n">parse_tcga_json_files</span><span class="p">(</span><span class="n">tcga_files</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">tcga_metadata</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                                    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Case&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample_Type&#39;</span><span class="p">,</span> <span class="s1">&#39;Project&#39;</span><span class="p">])</span>
+
+        <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;File_ID&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="c1"># Make Dataframe</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">frame</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_tcga_json_files"><a class="viewcode-back" href="../metadata_processing.html#metadata_processing.parse_tcga_json_files">[docs]</a><span class="k">def</span> <span class="nf">parse_tcga_json_files</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read json files from list and extract relevant values</span>
+
+<span class="sd">    :param files: as list</span>
+<span class="sd">    :return: tcga_metadata: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tcga_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">normal_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">)</span>
+            <span class="n">file_id</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">case_id</span> <span class="o">=</span> <span class="n">dictor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;data.cases.0.case_id&quot;</span><span class="p">)</span>
+            <span class="n">submitter_id</span> <span class="o">=</span> <span class="n">dictor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;data.submitter_id&quot;</span><span class="p">)</span>  <span class="c1"># = file_name</span>
+            <span class="n">sample_type</span> <span class="o">=</span> <span class="n">dictor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;data.cases.0.samples.0.sample_type&quot;</span><span class="p">)</span>
+            <span class="n">project</span> <span class="o">=</span> <span class="n">dictor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;data.cases.0.project.project_id&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normal_pattern</span><span class="p">,</span> <span class="n">sample_type</span><span class="p">)):</span>
+                <span class="n">sample_type</span> <span class="o">=</span> <span class="s1">&#39;normal&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sample_type</span> <span class="o">=</span> <span class="s1">&#39;tumor&#39;</span>
+
+            <span class="k">if</span> <span class="n">submitter_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tcga_metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">tcga_metadata</span><span class="p">[</span><span class="n">submitter_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">case_id</span><span class="p">,</span> <span class="n">sample_type</span><span class="p">,</span> <span class="n">project</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">tcga_metadata</span></div>
+
+
+<div class="viewcode-block" id="parse_icgc_json_files"><a class="viewcode-back" href="../metadata_processing.html#metadata_processing.parse_icgc_json_files">[docs]</a><span class="k">def</span> <span class="nf">parse_icgc_json_files</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read json files from list and extract relevant values</span>
+
+<span class="sd">    :param files: as list</span>
+<span class="sd">    :return: icgc_metadata: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">icgc_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">normal_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">)</span>
+            <span class="n">file_id</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">donor_id</span> <span class="o">=</span> <span class="n">dictor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;donors.0.donorId&quot;</span><span class="p">)</span>
+            <span class="n">specimen_type</span> <span class="o">=</span> <span class="n">dictor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;donors.0.specimenType.0&quot;</span><span class="p">)</span>
+            <span class="n">project</span> <span class="o">=</span> <span class="n">dictor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;donors.0.projectCode&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normal_pattern</span><span class="p">,</span> <span class="n">specimen_type</span><span class="p">)):</span>
+                <span class="n">specimen_type</span> <span class="o">=</span> <span class="s1">&#39;normal&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">specimen_type</span> <span class="o">=</span> <span class="s1">&#39;tumor&#39;</span>
+
+            <span class="k">if</span> <span class="n">file_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">icgc_metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">icgc_metadata</span><span class="p">[</span><span class="n">file_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">donor_id</span><span class="p">,</span> <span class="n">specimen_type</span><span class="p">,</span> <span class="n">project</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">icgc_metadata</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>parseFeatureCounts &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ml-test.html">Machine Learning workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">python_scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>parseFeatureCounts</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for parseFeatureCounts</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This is a script to parse multiple files from featureCounts to perform batch correction</span>
+
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">fileUtils.file_handling</span> <span class="k">as</span> <span class="nn">fh</span>
+
+<span class="c1"># Create logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;FeatureCounts table creator&#39;</span><span class="p">)</span>
+<span class="c1"># Create console handler</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="c1"># Create formatter</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="c1"># add ch to logger</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--inpath&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path to count Files&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to folder with featureCount values&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-g&#39;</span><span class="p">,</span> <span class="s1">&#39;--genes&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;gene ids from rnaseq&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to extracted genes from rnaseq file&#39;</span><span class="p">,</span> <span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--outpath&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;output file&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output file; Table containing featureCount values&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--lengths/--no-lengths&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;extract lengths of genes&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;writes table with gene lengths if true, default=False&#39;</span><span class="p">,</span>
+              <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">lengths</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting...&quot;</span><span class="p">)</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="c1"># printed to STDOUT on command line</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get featureCount input files&#39;</span><span class="p">)</span>
+    <span class="n">allfiles</span><span class="p">,</span> <span class="n">sample_ids</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_files_and_sample_ids</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="s1">&#39;*.txt&#39;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parse featureCount files&#39;</span><span class="p">)</span>
+    <span class="n">gene_counts</span><span class="p">,</span> <span class="n">gene_dict</span><span class="p">,</span> <span class="n">gene_lengths</span> <span class="o">=</span> <span class="n">parse_featureCounts</span><span class="p">(</span><span class="n">allfiles</span><span class="p">,</span> <span class="n">genes</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Write count values to table&#39;</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">write_table</span><span class="p">(</span><span class="n">gene_dict</span><span class="p">,</span> <span class="n">sample_ids</span><span class="p">,</span> <span class="n">gene_counts</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">lengths</span><span class="p">:</span>
+        <span class="n">write_lengths</span><span class="p">(</span><span class="n">gene_lengths</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process finished in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;sec&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_featureCounts"><a class="viewcode-back" href="../parseFeatureCounts.html#parseFeatureCounts.parse_featureCounts">[docs]</a><span class="k">def</span> <span class="nf">parse_featureCounts</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">genes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a file and the sample ID and save gene_ids and tmp_values, adapted from Steffen Lemke</span>
+
+<span class="sd">    :param files: list of files</span>
+<span class="sd">    :param genes: dict mapping gene_ids to gene_names</span>
+<span class="sd">    :return: counts_all_files</span>
+<span class="sd">    :return: gene_dict</span>
+<span class="sd">    :return: geneLengths_all_files : dict mapping ids to lengths</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gene_dict</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read_unique_genes</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span>
+
+    <span class="c1"># initialize dict with keys from gene_dict and empty list as value --&gt; where the tmp values are to be stored</span>
+    <span class="n">counts_all_files</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">gene_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+    <span class="n">geneLengths_all_files</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">gene_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Read each file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">count_dict_one_file</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># read file from 2nd line</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]:</span>
+                <span class="c1"># split lines by tab</span>
+                <span class="n">fields</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># take &quot;Gene Id&quot; and &quot;Gene Name&quot;</span>
+                <span class="n">current_gene_id</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">current_length</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+                <span class="c1"># read count at last column</span>
+                <span class="n">current_count</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="c1"># Append gene_id, tmp_value to temporary dict for 1 file</span>
+                <span class="k">if</span> <span class="n">current_gene_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">count_dict_one_file</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">count_dict_one_file</span><span class="p">[</span><span class="n">current_gene_id</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_count</span><span class="p">)</span>
+                    <span class="c1"># save exon gene lengths: they are identical for all featureCounts outputs</span>
+                    <span class="n">geneLengths_all_files</span><span class="p">[</span><span class="n">current_gene_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_length</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">count_dict_one_file</span><span class="p">[</span><span class="n">current_gene_id</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_count</span><span class="p">)</span>
+
+            <span class="c1"># Append values of 1 file to tmp_values list comprising all files</span>
+            <span class="k">for</span> <span class="n">gene_id</span><span class="p">,</span> <span class="n">tpm_value</span> <span class="ow">in</span> <span class="n">count_dict_one_file</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">counts_all_files</span><span class="p">[</span><span class="n">gene_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tpm_value</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">counts_all_files</span><span class="p">,</span> <span class="n">gene_dict</span><span class="p">,</span> <span class="n">geneLengths_all_files</span></div>
+
+
+<div class="viewcode-block" id="write_lengths"><a class="viewcode-back" href="../parseFeatureCounts.html#parseFeatureCounts.write_lengths">[docs]</a><span class="k">def</span> <span class="nf">write_lengths</span><span class="p">(</span><span class="n">geneLengths_all_files</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output</span>
+<span class="sd">        Comprises all non-overlapping bases in exons belonging to the same gene</span>
+
+<span class="sd">    :param geneLengths_all_files:  gene_ids mapped to gene_lengths</span>
+<span class="sd">    :param outpath: path where to store outfile, txt</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">geneLengths_all_files</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GeneLength&#39;</span><span class="p">])</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;GeneID&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">suffix</span>
+    <span class="n">new_outpath</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="s2">&quot;featureCounts_geneLengths&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="c1"># print(new_outpath)</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">new_outpath</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

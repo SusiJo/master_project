@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>sra_metadata_processing &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ml-test.html">Machine Learning workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">python_scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>sra_metadata_processing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for sra_metadata_processing</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python3</span>
+
+<span class="c1"># This script processes metadata xml, csv files downloaded from SRA</span>
+
+<span class="c1"># imports</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="kn">import</span> <span class="nn">fileUtils.file_handling</span> <span class="k">as</span> <span class="nn">fh</span>
+
+<span class="c1"># Create logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;SRA metadata reader&#39;</span><span class="p">)</span>
+<span class="c1"># Create console handler</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="c1"># Create formatter</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="c1"># add ch to logger</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-x&#39;</span><span class="p">,</span> <span class="s1">&#39;--xml&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path to xml metadata files&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to folder with metadata in xml format&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;--csv&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path to csv metadata files&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to folder with metadata in csv format&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--csv_only/--no_csv_only&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;write all csv to table?&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If csv_only specified, additionally writes all csv files to one output table&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--outpath&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path for output table (Experiment &amp; Runinfo)&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Table with metadata (Experiment xml, Runinfo csv) metadata in csv format&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">csv</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">csv_only</span><span class="p">):</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="c1"># printed to STDOUT on command line</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get files&#39;</span><span class="p">)</span>
+    <span class="n">all_xml_files</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_files</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="s1">&#39;*.xml&#39;</span><span class="p">)</span>
+    <span class="n">all_csv_files</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_files</span><span class="p">(</span><span class="n">csv</span><span class="p">,</span> <span class="s1">&#39;*.csv&#39;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsing xml files...&#39;</span><span class="p">)</span>
+    <span class="n">metadata_xml</span> <span class="o">=</span> <span class="n">parse_xml</span><span class="p">(</span><span class="n">all_xml_files</span><span class="p">,</span> <span class="n">all_csv_files</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing output to table...&#39;</span><span class="p">)</span>
+    <span class="n">write_xml_table</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">metadata_xml</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">csv_only</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing all csv files into table...&#39;</span><span class="p">)</span>
+        <span class="n">parse_all_fields_csv</span><span class="p">(</span><span class="n">all_csv_files</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process finished in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;sec&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_all_fields_csv"><a class="viewcode-back" href="../sra_metadata_processing.html#sra_metadata_processing.parse_all_fields_csv">[docs]</a><span class="k">def</span> <span class="nf">parse_all_fields_csv</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reads all csv files and produces one table with all fields</span>
+
+<span class="sd">    :param files: as list</span>
+<span class="sd">    :param outpath: to table .csv</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">suffix</span>
+    <span class="n">new_outpath</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="s2">&quot;metadata_all_csv&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="n">dfs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">frame</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">new_outpath</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_xml"><a class="viewcode-back" href="../sra_metadata_processing.html#sra_metadata_processing.parse_xml">[docs]</a><span class="k">def</span> <span class="nf">parse_xml</span><span class="p">(</span><span class="n">xml_files</span><span class="p">,</span> <span class="n">csv_files</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reads xml files which are not consistent</span>
+
+<span class="sd">    :param xml_files: as list</span>
+<span class="sd">    :param csv_files: as list</span>
+<span class="sd">    :return: metadata: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xml_files</span><span class="p">):</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">srr</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">source_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">body_site</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">subject_status</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">biosample</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gender</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">study_disease</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">histological_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">is_tumor</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">tissue</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">phenotype</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">library_strat</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">organism</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="c1"># print(srr)</span>
+        <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">child</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ch</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;SCIENTIFIC_NAME&#39;</span><span class="p">:</span>
+                            <span class="n">organism</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                            <span class="c1"># print(organism)</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+                            <span class="c1"># print(s.attrib)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;LIBRARY_STRATEGY&#39;</span><span class="p">:</span>
+                                <span class="n">library_strat</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(library_strat)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;EXTERNAL_ID&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;namespace&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;BioProject&#39;</span><span class="p">:</span>
+                                <span class="c1"># print(s.attrib) #{&#39;namespace&#39;: &#39;BioProject&#39;}</span>
+                                <span class="n">project</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(project)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;EXTERNAL_ID&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;namespace&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;BioSample&#39;</span><span class="p">:</span>
+                                <span class="n">biosample</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(biosample)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;source_name&#39;</span><span class="p">:</span>       <span class="c1"># body_site</span>
+                                <span class="n">source_name</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(body_site)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;subject status&#39;</span><span class="p">:</span>
+                                <span class="n">subject_status</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(subject_status)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;gender&#39;</span> <span class="ow">or</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;sex&#39;</span><span class="p">):</span>
+                                <span class="n">gender</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(gender)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;study disease&#39;</span><span class="p">:</span>
+                                <span class="n">study_disease</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;histological type&#39;</span><span class="p">:</span>
+                                <span class="n">histological_type</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;is tumor&#39;</span><span class="p">:</span>
+                                <span class="n">is_tumor</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(is_tumor)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span>
+                                <span class="n">age</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(age)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tissue&#39;</span><span class="p">:</span>
+                                <span class="n">tissue</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(tissue)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;phenotype&#39;</span><span class="p">:</span>
+                                <span class="n">phenotype</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(phenotype)</span>
+                            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;body site&#39;</span><span class="p">:</span>
+                                <span class="n">body_site</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                                <span class="c1"># print(body_site)</span>
+                            <span class="k">if</span> <span class="n">source_name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                                <span class="n">source_name</span> <span class="o">=</span> <span class="n">body_site</span>
+                            <span class="c1"># if project not at that place, keep searching</span>
+                            <span class="k">if</span> <span class="n">project</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;TAG&#39;</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;parent_bioproject&#39;</span><span class="p">:</span>
+                                    <span class="n">project</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">idx</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                            <span class="c1"># if still empty</span>
+                            <span class="k">if</span> <span class="n">project</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">o</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                                    <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;LABEL&#39;</span><span class="p">:</span>
+                                        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;PRJ&quot;</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">text</span><span class="p">):</span>
+                                            <span class="n">project</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">text</span>
+                <span class="k">if</span> <span class="n">project</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">ch</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;STUDY&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;PRJ&quot;</span><span class="p">,</span> <span class="n">ch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alias&#39;</span><span class="p">)):</span>
+                        <span class="c1"># print(ch.get(&#39;alias&#39;))</span>
+                        <span class="n">project</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alias&#39;</span><span class="p">)</span>
+
+        <span class="c1"># fill metadata dict</span>
+        <span class="k">if</span> <span class="n">srr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="n">srr</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">project</span><span class="p">,</span> <span class="n">biosample</span><span class="p">,</span> <span class="n">library_strat</span><span class="p">,</span> <span class="n">organism</span><span class="p">,</span> <span class="n">gender</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">source_name</span><span class="p">,</span> <span class="n">subject_status</span><span class="p">,</span>
+                             <span class="n">tissue</span><span class="p">,</span> <span class="n">phenotype</span><span class="p">,</span> <span class="n">is_tumor</span><span class="p">,</span> <span class="n">study_disease</span><span class="p">,</span> <span class="n">histological_type</span><span class="p">]</span>
+
+    <span class="c1"># look-up condition in csv file for appending this info</span>
+    <span class="n">csv_dict</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">parse_csv</span><span class="p">(</span><span class="n">csv_files</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">csv_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="n">k</span><span class="p">:</span>
+                <span class="c1"># condition info from csv file</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">csv_dict</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="c1"># if project still empty, take from csv dict</span>
+                <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">csv_dict</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">metadata</span></div>
+
+
+<div class="viewcode-block" id="write_xml_table"><a class="viewcode-back" href="../sra_metadata_processing.html#sra_metadata_processing.write_xml_table">[docs]</a><span class="k">def</span> <span class="nf">write_xml_table</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write table with csv and xml info to table</span>
+
+<span class="sd">    :param outpath: path to output table .csv</span>
+<span class="sd">    :param metadata: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Project&#39;</span><span class="p">,</span> <span class="s1">&#39;BioSample&#39;</span><span class="p">,</span> <span class="s1">&#39;Library_Strategy&#39;</span><span class="p">,</span> <span class="s1">&#39;Organism&#39;</span><span class="p">,</span> <span class="s1">&#39;Gender&#39;</span><span class="p">,</span> <span class="s1">&#39;Age&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Source_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Subject_status&#39;</span><span class="p">,</span> <span class="s1">&#39;Tissue&#39;</span><span class="p">,</span> <span class="s1">&#39;Phenotype&#39;</span><span class="p">,</span> <span class="s1">&#39;Is_Tumor&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;StudyDisease&#39;</span><span class="p">,</span> <span class="s1">&#39;HistologicalType&#39;</span><span class="p">,</span> <span class="s1">&#39;Condition&#39;</span><span class="p">])</span>
+
+    <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;RunID&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
