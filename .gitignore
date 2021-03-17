@@ -1,0 +1,11 @@
+# OS generated files #
+######################
+.DS_Store
+
+# venvs
+#####################
+venvs/
+.Rhistory
+.Rproj.user
+R_notebooks.Rproj
+Batch_correction.nb.html
