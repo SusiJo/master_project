@@ -12,4 +12,6 @@ This repository relates to my master thesis: **ML-based gene expression profilin
 
 ## Documentation
 
-The documentatin is hosted at Read The Docs which can be found [here]() 
+The documentation is built with Read The Docs and can only be accessed locally after cloning the repo.
+Please check-out the `python_scripts/environment.yml` to ensure the necessary packages are installed.
+The webpage can be built from the `docs` folder with `make clean && make html`.
