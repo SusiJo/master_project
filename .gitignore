@@ -2,9 +2,8 @@
 ######################
 .DS_Store
 
-# venvs
-#####################
-venvs/
+.RData
+.RDataTmp
 .Rhistory
 .Rproj.user
 R_notebooks.Rproj
