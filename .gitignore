@@ -8,6 +8,6 @@
 .Rproj.user
 R_notebooks.Rproj
 Batch_correction.nb.html
-.idea/*
-__pycache__/*
-.ipynb_checkpoints/*
+**/.idea/**
+**/__pycache__/**
+**/.ipynb_checkpoints/**
