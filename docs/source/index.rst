@@ -9,6 +9,5 @@ This is the documentation on my master thesis project at `QBiC <https://uni-tueb
    :glob:
    
    getting_started
-   machine_learning
-   ml-test 
+   gallery
    modules

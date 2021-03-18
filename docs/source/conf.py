@@ -12,7 +12,6 @@
 #
 import os
 import sys
-# sys.path.insert(0, os.path.abspath('../gallery/'))
 sys.path.insert(0, os.path.abspath('../../python_scripts/'))
 
 
@@ -36,7 +35,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
     'nbsphinx',
-    'nbsphinx_link',
     'sphinx_gallery.load_style',
 ]
 
