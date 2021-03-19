@@ -1,6 +1,8 @@
 ---
 title: "Batch Correction"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 This notebook serves to compute batch corrected read counts from nf-core/rnaseq/featureCounts output.
@@ -17,7 +19,7 @@ library(tibble)
 
 # Read FeatureCounts Data
 
-```{r }
+```{r Reading data}
 
 pancreas_data <- read.table("/Users/susanne/Documents/Master/Data/pancreas/merged_featureCounts_all_pancreas.txt", sep="\t", header=TRUE)
 pheno <- read.table("/Users/susanne/Documents/Master/Data/pancreas/metadata_all_pancreas_with_batches.csv", sep=";", header=TRUE)
@@ -51,11 +53,34 @@ batch_pancreas = sorted_pheno$Batch
 ```
 
 
+##Function
+
+* [source of TPM function](https://gist.github.com/slowkow/c6ab0348747f86e2748b)
+* [source normalization with min max ](https://stackoverflow.com/questions/44050028/min-max-scaling-normalization-in-r-for-train-and-test-data)
+
+```{r Functions}
+
+# TPM Function from 
+  tpm <- function(counts, lengths) {
+  rate <- counts / lengths
+  rate / sum(rate) * 1e6
+  }
+
+# mimics scikit-learn.preprocessing.MinMaxScaler()
+# mi, ma = range(mi, ma)
+normalize <- function(x, mi, ma)
+{
+    X_sc <- (x- min(x)) / (max(x)-min(x))
+    X_sc * (ma-mi) + mi
+}
+
+```
+
+
+
 # SVAseq: 
 
-
-
-## ComBat without model
+## ComBat 
 
 ```{r ComBat}
 
@@ -66,6 +91,7 @@ combat_edata1 = ComBat(dat=expr_df, batch=batch_pancreas, mod=NULL, par.prior=TR
 combat_tpm_pancreas <- apply(combat_edata1, 2, tpm, lengths=sorted_gene_lengths$GeneLength)
 # convert to dataframe
 combat_pancreas_tpm_df <- data.frame(combat_tpm_pancreas)
+combat_df <- data.frame(combat_tpm_pancreas)
 # append GeneId, GeneName to sample_names
 table_header <- append(c("GeneID", "GeneName"), sample_names, after=2)
 
@@ -74,16 +100,16 @@ combat_pancreas_tpm_df <- add_column(combat_pancreas_tpm_df, gene_id, .before=1)
 combat_pancreas_tpm_df <- add_column(combat_pancreas_tpm_df, gene_name, .before=2)
 
 colnames(combat_pancreas_tpm_df) <- table_header
-write.table(combat_pancreas_tpm_df, "/Users/susanne/Documents/Master/Data/pancreas/ComBat_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
+# write.table(combat_df, "/Users/susanne/Documents/Master/Data/pancreas/ComBat_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
 
 
 
 ```
 
 
-## Combat with model
+## ComBat with model
 
-```{r Combat model}
+```{r ComBat model}
 # intercept, cancer, normal
 mod = model.matrix(~as.factor(Sample_Type), data=sorted_pheno)
 
@@ -91,8 +117,10 @@ combat_edata3 = ComBat(dat=expr_df, batch=batch_pancreas, mod=mod, par.prior=TRU
 
 # convert combat batch corrected values to tpm
 combat_tpm_pancreas3 <- apply(combat_edata3, 2, tpm, lengths=sorted_gene_lengths$GeneLength)
+
 # convert to dataframe
 combat_pancreas_tpm_df3 <- data.frame(combat_tpm_pancreas3)
+combat_model <- data.frame(combat_tpm_pancreas3)
 # append GeneId, GeneName to sample_names
 table_header <- append(c("GeneID", "GeneName"), sample_names, after=2)
 
@@ -101,7 +129,7 @@ combat_pancreas_tpm_df3 <- add_column(combat_pancreas_tpm_df3, gene_id, .before=
 combat_pancreas_tpm_df3 <- add_column(combat_pancreas_tpm_df3, gene_name, .before=2)
 
 colnames(combat_pancreas_tpm_df3) <- table_header
-write.table(combat_pancreas_tpm_df3, "/Users/susanne/Documents/Master/Data/pancreas/ComBatModel_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
+# write.table(combat_pancreas_tpm_df3, "/Users/susanne/Documents/Master/Data/pancreas/ComBatModel_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
 
 ```
 
@@ -125,6 +153,8 @@ combatseq_tpm_pancreas <- apply(combatseq_counts_pancreas, 2, tpm, lengths=sorte
 
 # convert to dataframe
 combatseq_pancreas_tpm_df <- data.frame(combatseq_tpm_pancreas)
+combatseq_df <- data.frame(combatseq_tpm_pancreas)
+
 
 # add columns GeneId, GeneName to dataframe 
 combatseq_pancreas_tpm_df <- add_column(combatseq_pancreas_tpm_df, gene_id, .before=1)
@@ -132,23 +162,278 @@ combatseq_pancreas_tpm_df <- add_column(combatseq_pancreas_tpm_df, gene_name, .b
 
 colnames(combatseq_pancreas_tpm_df) <- table_header
 
-write.table(combatseq_pancreas_tpm_df, "/Users/susanne/Documents/Master/Data/pancreas/CombatSeq_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
+# write.table(combatseq_df, "/Users/susanne/Documents/Master/Data/pancreas/CombatSeq_corrected_TPM_all_pancreas.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
 
 
 ```
 
-# TPM Function
 
-* [source](https://gist.github.com/slowkow/c6ab0348747f86e2748b)
 
-```{r TPM Function}
+## PCA analysis prcomp
 
-# Function from 
-  tpm <- function(counts, lengths) {
-  rate <- counts / lengths
-  rate / sum(rate) * 1e6
-}
+```{r prcomp}
+
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(ggpubr)
+library(data.table)
+
+# -----------------------------------------------------------------------------
+# 1) uncorrected TPM values
+
+# convert counts to TPM 
+expr_TPM <- apply(expr_df, 2, tpm, lengths=sorted_gene_lengths$GeneLength)
+
+
+# convert to dataframe
+expr_df_TPM <- data.frame(expr_TPM)
+
+
+# write exprTPM to output
+# convert to dataframe
+uncorr_TPM_df <- data.frame(expr_TPM)
+# add columns GeneId, GeneName to dataframe 
+uncorr_TPM_df <- add_column(uncorr_TPM_df, gene_id, .before=1)
+uncorr_TPM_df <- add_column(uncorr_TPM_df, gene_name, .before=2)
+colnames(uncorr_TPM_df) <- table_header
+# write.table(uncorr_TPM_df, "/Users/susanne/Documents/Master/Data/pancreas/Uncorrected_TPM_all_pancreas_fCounts.txt", sep="\t", row.names = FALSE, col.names =  TRUE, quote=FALSE)
+
+
+expr_df_TPM_t <- transpose(expr_df_TPM)
+
+# attach sample names and feature names
+row.names(expr_df_TPM_t) <- sample_names
+colnames(expr_df_TPM_t) <- gene_id
+
+
+
+# get condition
+sample_condition <- sorted_pheno$Sample_Type
+
+# PCA uncorrected data
+df_pca_uncorr <- prcomp(expr_df_TPM_t)
+
+# plot PCA per condition
+df_out_uncorr <- as.data.frame(df_pca_uncorr$x)
+df_out_uncorr$condition <- sample_condition
+pca_uncorr_c<-ggplot(df_out_uncorr,aes(x=PC1,y=PC2,color=condition ))
+pca_uncorr_c<-pca_uncorr_c+geom_point()
+
+# PCA per project
+df_out_uncorr <- as.data.frame(df_pca_uncorr$x)
+df_out_uncorr$project <- sorted_pheno$Project
+pca_uncorr_p<-ggplot(df_out_uncorr,aes(x=PC1,y=PC2,color=project ))
+pca_uncorr_p<-pca_uncorr_p+geom_point()
+
+
+# -----------------------------------------------------------------------------
+# 2) Combat corrected TPM 
+combat_pancreas_tpm_df_t <- transpose(combat_df)
+row.names(combat_pancreas_tpm_df_t) <- sample_names
+colnames(combat_pancreas_tpm_df_t) <- gene_id
+
+df_pca_combat <- prcomp(combat_pancreas_tpm_df_t)
+
+# PCA combat per condition
+df_out_combat <- as.data.frame(df_pca_combat$x)
+df_out_combat$condition <- sample_condition
+pca_combat_c<-ggplot(df_out_combat,aes(x=PC1,y=PC2,color=condition ))
+pca_combat_c<-pca_combat_c+geom_point()
+
+# PCA combat per project
+df_out_combat <- as.data.frame(df_pca_combat$x)
+df_out_combat$project <- sorted_pheno$Project
+pca_combat_p<-ggplot(df_out_combat,aes(x=PC1,y=PC2,color=project ))
+pca_combat_p<-pca_combat_p+geom_point()
+
+# -----------------------------------------------------------------------------
+# 3) Combat corrected with model TPM
+combat_model_pancreas_tpm_t <- transpose(combat_model)
+row.names(combat_model_pancreas_tpm_t) <- sample_names
+colnames(combat_model_pancreas_tpm_t) <- gene_id
+
+# PCA
+df_pca_combat_model <- prcomp(combat_model_pancreas_tpm_t)
+
+# PCA combat model per condition
+df_out_combat_model <- as.data.frame(df_pca_combat_model$x)
+df_out_combat_model$condition <- sample_condition
+pca_combat_model_c<-ggplot(df_out_combat_model,aes(x=PC1,y=PC2,color=condition ))
+pca_combat_model_c<-pca_combat_model_c+geom_point()
+
+# PCA combat model per project
+df_out_combat_model <- as.data.frame(df_pca_combat_model$x)
+df_out_combat_model$project <- sorted_pheno$Project
+pca_combat_model_p<-ggplot(df_out_combat_model,aes(x=PC1,y=PC2,color=project ))
+pca_combat_model_p<-pca_combat_model_p+geom_point()
+
+# -----------------------------------------------------------------------------
+# 4) CombatSeq corrected TPM
+
+combatseq_t <- transpose(combatseq_df)
+row.names(combatseq_t) <- sample_names
+colnames(combatseq_t) <- gene_id
+
+# PCA
+df_pca_combatseq <- prcomp(combatseq_t)
+
+
+# PCA combatseq condition
+df_out_combatseq <- as.data.frame(df_pca_combatseq$x)
+df_out_combatseq$condition <- sample_condition
+pca_combatseq_c<-ggplot(df_out_combatseq,aes(x=PC1,y=PC2,color=condition ))
+pca_combatseq_c<-pca_combatseq_c+geom_point()
+
+# PCA combatseq project
+df_out_combatseq <- as.data.frame(df_pca_combatseq$x)
+df_out_combatseq$project <- sorted_pheno$Project
+pca_combatseq_p<-ggplot(df_out_combatseq,aes(x=PC1,y=PC2,color=project ))
+pca_combatseq_p<-pca_combatseq_p+geom_point()
+
+
+
+# draw multipage
+figure1 <- ggarrange(pca_uncorr_c, pca_uncorr_p,
+          pca_combat_c, pca_combat_p,
+          pca_combat_model_c, pca_combat_model_p,
+          pca_combatseq_c, pca_combatseq_p,
+          labels = c("U", "U", 
+                     "C", "C",
+                     "CM", "CM",
+                     "CS", "CS"),
+                        nrow = 4, ncol = 2)
+
+figure1 <- annotate_figure(figure1, top = text_grob("PCA of unscaled data", color = "black", face = "bold", size = 12))
+ggexport(figure1, filename = "/Users/susanne/Downloads/pca_unscaled_condition_project.png")
 ```
 
 
+## Scaling to MinMax
+
+```{r scaling}
+#               UNCORRECTED DATA
+# -----------------------------------------------------------------------------
+
+df_uncorr_scaled <- apply(expr_df_TPM_t, 2, normalize, -1,1)
+
+# replace infinity and is.na with 0
+is.na(df_uncorr_scaled) <- sapply(df_uncorr_scaled, is.infinite)
+df_uncorr_scaled[is.na(df_uncorr_scaled)] <- 0
+
+# PCA uncorrected data
+df_pca_uncorr_scaled <- prcomp(df_uncorr_scaled)
+
+# plot PCA per condition
+df_out_uncorr_scaled <- as.data.frame(df_pca_uncorr_scaled$x)
+df_out_uncorr_scaled$condition <- sample_condition
+pca_uncorr_scaled_c<-ggplot(df_out_uncorr_scaled,aes(x=PC1,y=PC2,color=condition ))
+pca_uncorr_scaled_c<-pca_uncorr_scaled_c+geom_point() 
+
+# PCA per project
+df_out_uncorr_scaled <- as.data.frame(df_pca_uncorr_scaled$x)
+df_out_uncorr_scaled$project <- sorted_pheno$Project
+pca_uncorr_scaled_p<-ggplot(df_out_uncorr_scaled,aes(x=PC1,y=PC2,color=project ))
+pca_uncorr_scaled_p<-pca_uncorr_scaled_p+geom_point()
+
+
+#               COMBAT CORRECTED AND SCALED
+# -----------------------------------------------------------------------------
+
+
+df_combat_scaled <- apply(combat_pancreas_tpm_df_t, 2, normalize, -1,1)
+
+# replace infinity and is.na with 0
+is.na(df_combat_scaled) <- sapply(df_combat_scaled, is.infinite)
+df_combat_scaled[is.na(df_combat_scaled)] <- 0
+
+# PCA combat scaled
+pca_combat_sc <- prcomp(df_combat_scaled)
+
+# PCA combat per condition
+df_out_combat_sc <- as.data.frame(pca_combat_sc$x)
+df_out_combat_sc$condition <- sample_condition
+pca_combat_sc_c<-ggplot(df_out_combat_sc,aes(x=PC1,y=PC2,color=condition ))
+pca_combat_sc_c<-pca_combat_sc_c+geom_point()
+
+# PCA combat per project
+
+df_out_combat_sc <- as.data.frame(pca_combat_sc$x)
+df_out_combat_sc$project <- sorted_pheno$Project
+pca_combat_sc_p<-ggplot(df_out_combat_sc,aes(x=PC1,y=PC2,color=project ))
+pca_combat_sc_p<-pca_combat_sc_p+geom_point()
+
+
+
+
+#               COMBAT WITH MODEL CORRECTED AND SCALED
+# -----------------------------------------------------------------------------
+df_combat_model_scaled <- apply(combat_model_pancreas_tpm_t, 2, normalize, -1,1)
+
+is.na(df_combat_model_scaled) <- sapply(df_combat_model_scaled, is.infinite)
+df_combat_model_scaled[is.na(df_combat_model_scaled)] <- 0
+
+
+# PCA combat model scaled
+pca_combat_model_sc <- prcomp(df_combat_model_scaled)
+
+# PCA combat per condition
+df_out_combat_model_sc <- as.data.frame(pca_combat_model_sc$x)
+df_out_combat_model_sc$condition <- sample_condition
+pca_combat_model_sc_c<-ggplot(df_out_combat_model_sc,aes(x=PC1,y=PC2,color=condition ))
+pca_combat_model_sc_c<-pca_combat_model_sc_c+geom_point()
+
+# PCA combat per project
+
+df_out_combat_model_sc <- as.data.frame(pca_combat_model_sc$x)
+df_out_combat_model_sc$project <- sorted_pheno$Project
+pca_combat_model_sc_p<-ggplot(df_out_combat_model_sc,aes(x=PC1,y=PC2,color=project ))
+pca_combat_model_sc_p<-pca_combat_model_sc_p+geom_point()
+
+
+#               COMBATSEQ CORRECTED AND SCALED
+# -----------------------------------------------------------------------------
+
+
+combatseq_t_sc <- apply(combatseq_t, 2, normalize, -1,1)
+
+is.na(combatseq_t_sc) <- sapply(combatseq_t_sc, is.infinite)
+combatseq_t_sc[is.na(combatseq_t_sc)] <- 0
+
+# PCA combatseq scaled
+pca_combatseq_sc <- prcomp(combatseq_t_sc)
+
+# PCA combatseq per condition
+df_combatseq_sc <- as.data.frame(pca_combatseq_sc$x)
+df_combatseq_sc$condition <- sample_condition
+pca_combatseq_sc_c<-ggplot(df_combatseq_sc,aes(x=PC1,y=PC2,color=condition ))
+pca_combatseq_sc_c<-pca_combatseq_sc_c+geom_point()
+
+# PCA combatseq per project
+
+df_combatseq_sc <- as.data.frame(pca_combatseq_sc$x)
+df_combatseq_sc$project <- sorted_pheno$Project
+pca_combatseq_sc_p<-ggplot(df_combatseq_sc,aes(x=PC1,y=PC2,color=project ))
+pca_combatseq_sc_p<-pca_combatseq_sc_p+geom_point()
+pca_combatseq_sc_p + ggtitle("CombatSeq") 
+
+
+
+# ----------------------------------------------------------------------------
+# draw multipage
+figure2 <- ggarrange(pca_uncorr_scaled_c, pca_uncorr_scaled_p,
+          pca_combat_sc_c, pca_combat_sc_p,
+          pca_combat_model_sc_c, pca_combat_model_sc_p,
+          pca_combatseq_sc_c, pca_combatseq_sc_p,
+          labels = c("U", "U", 
+                     "C", "C",
+                     "CM", "CM",
+                     "CS", "CS"),
+                        nrow = 4, ncol = 2)
+
+figure2 <- annotate_figure(figure2, top = text_grob("PCA of MinMax-scaled data", color = "black", face = "bold", size = 12))
+
+ggexport(figure2, filename = "/Users/susanne/Downloads/pca_scaled_condition_project.png")
+
+```
 
