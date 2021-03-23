@@ -25,6 +25,7 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from collections import OrderedDict
 
 
@@ -63,13 +64,15 @@ def main(inpath, outpath, metadata, pca, tsne, umap, comparison, silhouette):
     print("Reading metadata...")
     meta, target_names, target, annotations, project, color_list = read_metadata(metadata, sample_ids)
 
+    plotly_comparison(scaled_data, project, annotations, target, outpath)
+
     # Plotting
     if pca:
-        visualization_plots(scaled_data, annotations, outpath, 'pca', 'Pancreas - original')
+        visualization_plots(scaled_data, annotations, outpath, 'pca', 'Pancreas - TPM from featureCounts ComBatSeq  outlier removed')
     if tsne:
-        visualization_plots(scaled_data, annotations, outpath, 'tsne', 'Pancreas - original')
+        visualization_plots(scaled_data, annotations, outpath, 'tsne', 'Pancreas - TPM from featureCounts ComBatSeq  outlier removed')
     if umap:
-        visualization_plots(scaled_data, annotations, outpath, 'umap', 'Pancreas - original')
+        visualization_plots(scaled_data, annotations, outpath, 'umap', 'Pancreas - TPM from featureCounts ComBatSeq outlier removed')
 
     if comparison:
         comparison_dim_reduction(scaled_data, color_list, outpath)
@@ -132,7 +135,8 @@ def read_metadata(metadata, sample_ids):
     project_dict = {v: 0 + k for k, v in enumerate(project_set)}
     # print(project_dict)
     project_arr = [project_dict[k] for k in project_list]
-    c = ['g', 'm', 'b', 'r']
+    # print(project_arr)
+    c = ['b', 'g', 'r', 'p']
     color_tups = list(zip(project_set, c))
     color_dict = {e[0]: e[1] for e in color_tups}
     print(color_dict)
@@ -165,6 +169,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     :param method: one of [pca, tsne, umap]
     :param title_dataset: i.e. Pancreas ComBat corrected
     """
+
     if method == 'pca':
         print("Performing pca for plotting...")
         pca = PCA(n_components=2)
@@ -193,22 +198,23 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
         d2 = embedding[:, 1]
 
     # Plotting
-    fig = px.scatter(x=d1, y=d2, color=target.Project, hover_name=target.ID, hover_data={'project': target.Condition, 'case_id': target.CaseID})
+    fig = px.scatter(x=d1, y=d2, color=target.Project, hover_name=target.ID, hover_data={'condition': target.Condition, 'case_id': target.CaseID})    # color project
+    # fig = px.scatter(x=d1, y=d2, color=target.Condition, hover_name=target.ID, hover_data={'project': target.Project, 'case_id': target.CaseID})        # color condition
     if method == 'pca':
         fig.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
                           xaxis_title="PC1 - explained variance: " + str(round(evr1*100, 2)),
                           yaxis_title="PC2 - explained variance: " + str(round(evr2*100, 2)),
-                          legend_title="Project", )
+                          legend_title="Project")   # Condition
     else:
         fig.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
-                          xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Project", )
+                          xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Project")     # Project
 
-    fig.update_traces(marker=go.scatter.Marker(size=5))
+    fig.update_traces(marker=go.scatter.Marker(size=20))
     fig.show()
     if not os.path.exists(outpath):
         os.mkdir(outpath)
-    fig.write_image(outpath + str(method) + "_original_plot.png")
-    fig.write_html(outpath + str(method) + "_original_plot.html")
+    # fig.write_image(outpath + str(method) + "_tpm_from_featureCounts_condition_plot.png")
+    fig.write_html(outpath + str(method) + "_tpm_combatseq_no_outlier_plot.html")
 
 
 def comparison_dim_reduction(X, target, outpath):
@@ -248,6 +254,43 @@ def comparison_dim_reduction(X, target, outpath):
     if not os.path.exists(outpath):
         os.mkdir(outpath)
     plt.savefig(outpath + "comparison_plot.png", format='png')
+
+
+def plotly_comparison(data, target, annos, conditions, outpath):
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(data)
+    d1 = X_pca[:, 0]
+    d2 = X_pca[:, 1]
+    evr1 = pca.explained_variance_ratio_[0]
+    evr2 = pca.explained_variance_ratio_[1]
+
+    tsne = TSNE(n_components=2, random_state=0)
+    X_embedded = tsne.fit_transform(data)
+    t1 = X_embedded[:, 0]
+    t2 = X_embedded[:, 1]
+
+    reducer = umap.UMAP(random_state=42)
+    embedding = reducer.fit_transform(data)
+    u1 = embedding[:, 0]
+    u2 = embedding[:, 1]
+
+    fig = make_subplots(rows=2, cols=3, subplot_titles=("PCA", "t-SNE", "UMAP"))
+    fig.add_trace(go.Scatter(x=d1, y=d2, mode='markers', marker=dict(color=target)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=t1, y=t2, mode='markers', marker=dict(color=target)), row=1, col=2)
+    fig.add_trace(go.Scatter(x=u1, y=u2, mode='markers', marker=dict(color=target)), row=1, col=3)
+    fig.update_traces(hovertext='ID: ' + annos.ID + '<br>' + 'Project: ' + annos.Project + '<br>' + 'Condition: ' + annos.Condition + '<br>' + 'CaseID: ' + annos.CaseID)
+    # fig.update_traces(marker_color=target)
+    fig.add_trace(go.Scatter(x=d1, y=d2, mode='markers', marker=dict(color=conditions)), row=2, col=1)
+    fig.add_trace(go.Scatter(x=t1, y=t2, mode='markers', marker=dict(color=conditions)), row=2, col=2)
+    fig.add_trace(go.Scatter(x=u1, y=u2, mode='markers', marker=dict(color=conditions)), row=2, col=3)
+    fig.update_traces(hovertext='ID: ' + annos.ID + '<br>' + 'Project: ' + annos.Project + '<br>' + 'Condition: ' + annos.Condition + '<br>' + 'CaseID: ' + annos.CaseID)
+    # fig.update_traces(marker_color=conditions)
+    fig.update_layout(showlegend=False, width=2000, height=1200, title_text='Dimensionality Reduction Comparison ComBat corrected')
+    fig.show()
+
+    if not os.path.exists(outpath):
+        os.mkdir(outpath)
+    fig.write_html(outpath + "comparison_combat.html")
 
 
 def silhouette_plot(data, target):
