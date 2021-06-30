@@ -13,6 +13,7 @@ import sys
 import click
 import numpy as np
 import pandas as pd
+
 from fileUtils.file_handling import read_tpm
 import plotly.express as px
 from time import time
@@ -20,7 +21,7 @@ from sklearn import preprocessing
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-import umap # umap-learn
+import umap  # umap-learn
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
@@ -30,19 +31,20 @@ from collections import OrderedDict
 
 
 @click.command()
-@click.option('-i', '--inpath', prompt='merged TPM table .txt',
-              help='Path to file with TPM values',
+@click.option('-i', '--inpath', prompt='merged table stringTieTPM or featureCounts.txt',
+              help='Path to file with merged TPM/featureCounts table',
               required=True)
-@click.option('-m', '--metadata', prompt='metadata to TPM file',
+@click.option('-m', '--metadata', prompt='path to metadata',
               help='Path to file with metadata',
               required=True)
 @click.option('-o', '--outpath', prompt='path to image folder', required=True)
-@click.option('--pca/--no-pca', help='Perform PCA analysis', default=False)
-@click.option('--tsne/--no-tsne', help='Perform TSNE analysis', default=False)
-@click.option('--umap/--no-umap', help='Perform UMAP analysis', default=False)
-@click.option('--comparison/--no-comparison', help='Perform Comparison analysis', default=False)
-@click.option('--silhouette/--no-silhouette', help='Perform Silhouette analysis', default=False)
-def main(inpath, outpath, metadata, pca, tsne, umap, comparison, silhouette):
+@click.option('--pca/--no-pca', help='perform PCA analysis', default=False)
+@click.option('--tsne/--no-tsne', help='perform t-SNE analysis', default=False)
+@click.option('--umap/--no-umap', help='perform UMAP analysis', default=False)
+@click.option('--comparison/--no-comparison', help='perform Comparison analysis', default=False)
+@click.option('--silhouette/--no-silhouette', help='perform Silhouette analysis', default=False)
+@click.option('-t', '--title', prompt='figure title', help='enter title for figure', required=True)
+def main(inpath, outpath, metadata, pca, tsne, umap, comparison, silhouette, title):
     print("Reading data...")
     sample_ids, gene_ids, feature_names, data = read_tpm(inpath)
     # print("sample ids", sample_ids)
@@ -62,20 +64,21 @@ def main(inpath, outpath, metadata, pca, tsne, umap, comparison, silhouette):
     scaled_data = scaling(dataT)
 
     print("Reading metadata...")
-    meta, target_names, target, annotations, project, color_list = read_metadata(metadata, sample_ids)
+    meta, target_names, target, annotations, project, pcolor_list, ccolor_list = read_metadata(metadata, sample_ids)
 
-    plotly_comparison(scaled_data, project, annotations, target, outpath)
+    print("Plotly comparison...")
+    plotly_comparison(scaled_data, pcolor_list, ccolor_list, annotations, outpath, title)
 
     # Plotting
     if pca:
-        visualization_plots(scaled_data, annotations, outpath, 'pca', 'Pancreas - TPM from featureCounts ComBatSeq  outlier removed')
+        visualization_plots(scaled_data, annotations, outpath, 'pca', title)
     if tsne:
-        visualization_plots(scaled_data, annotations, outpath, 'tsne', 'Pancreas - TPM from featureCounts ComBatSeq  outlier removed')
+        visualization_plots(scaled_data, annotations, outpath, 'tsne', title)
     if umap:
-        visualization_plots(scaled_data, annotations, outpath, 'umap', 'Pancreas - TPM from featureCounts ComBatSeq outlier removed')
+        visualization_plots(scaled_data, annotations, outpath, 'umap', title)
 
     if comparison:
-        comparison_dim_reduction(scaled_data, color_list, outpath)
+        comparison_dim_reduction(scaled_data, pcolor_list, outpath)
 
     if silhouette:
         silhouette_plot(scaled_data, target)
@@ -90,7 +93,7 @@ def read_metadata(metadata, sample_ids):
     :return: meta_dict
     :return: target_names: dict
     :return: target: array
-    :return: annotation: pd.DataFrame
+    :return: annotation: pd.DataFramepcolor
     :return: project_arr
     :return: color_list
     """
@@ -128,24 +131,35 @@ def read_metadata(metadata, sample_ids):
     annotations.drop([1], axis=1, inplace=True)
     annotations.rename({0: 'ID'}, axis=1, inplace=True)
 
-    project_list = annotations.iloc[:, 3]
-    # print(project_list)
-    project_set = set(project_list)
+    project_series = annotations.iloc[:, 3]
+    # print("project series\n", project_series)
+    # project_list = project_series.tolist()
+    # print("project_list\n", project_list)
+    project_set = set(project_series)
     # print(project_set)
     project_dict = {v: 0 + k for k, v in enumerate(project_set)}
     # print(project_dict)
-    project_arr = [project_dict[k] for k in project_list]
+    project_arr = [project_dict[k] for k in project_series]
     # print(project_arr)
     c = ['b', 'g', 'r', 'p']
     color_tups = list(zip(project_set, c))
-    color_dict = {e[0]: e[1] for e in color_tups}
-    print(color_dict)
-    color_list = [color_dict[k] for k in project_list]
-
+    # color_dict = {e[0]: e[1] for e in color_tups}
+    # pdict = {'GTEx-PRJNA75899': '#EF553B', 'TCGA-PAAD': '#AB63FA', 'PACA-AU': '#00CC96', 'PACA-CA': '#636EFA'}
+    pdict = {'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
+    # print('Color-dict\n', pdict) #color_dict
+    # color_list = [pdict[k] for k in project_list] #color_dict
+    pcolor_list = project_series.map(pdict)
     # print(annotations)
-    # print(color_list)
+    # print('color-list\n', pcolor_list)
 
-    return meta_dict, target_names, target, annotations, project_arr, color_list
+    # target condition colors
+    cdict = {0: '#EF553B', 1: '#636EFA'}
+    ccolor_list = [cdict[k] for k in target]
+    # print("cond_colors\n", ccolor_list)
+    # print(ccolor_list)
+    # print(pcolor_list)
+
+    return meta_dict, target_names, target, annotations, project_arr, pcolor_list, ccolor_list
 
 
 def scaling(data):
@@ -155,6 +169,7 @@ def scaling(data):
     :return: scaled_data
     """
     scaler = preprocessing.MinMaxScaler()
+    # scaler = preprocessing.StandardScaler()
     # scales in the range of -1 to 1
     scaled_data = scaler.fit_transform(data, (-1, 1))
     return scaled_data
@@ -182,7 +197,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     if method == 'tsne':
         print("Performing tsne for plotting...")
         # Dimension reduction
-        # consider setting init='pca'
+        # consider setting init='pca', perplexity (neighbors), learning_rate
         tsne = TSNE(n_components=2, random_state=0)
         X_embedded = tsne.fit_transform(data)
         d1 = X_embedded[:, 0]
@@ -191,30 +206,62 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     if method == 'umap':
         print("Performing umap for plotting...")
         # Dimension reduction
-        # ensure reproducibility of embedding by setting random state
+        # ensure reproducibility of embedding by setting random state, n_neighbors, metric='mahalanobis'
         reducer = umap.UMAP(random_state=42)
         embedding = reducer.fit_transform(data)
         d1 = embedding[:, 0]
         d2 = embedding[:, 1]
 
     # Plotting
-    fig = px.scatter(x=d1, y=d2, color=target.Project, hover_name=target.ID, hover_data={'condition': target.Condition, 'case_id': target.CaseID})    # color project
-    # fig = px.scatter(x=d1, y=d2, color=target.Condition, hover_name=target.ID, hover_data={'project': target.Project, 'case_id': target.CaseID})        # color condition
-    if method == 'pca':
-        fig.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
-                          xaxis_title="PC1 - explained variance: " + str(round(evr1*100, 2)),
-                          yaxis_title="PC2 - explained variance: " + str(round(evr2*100, 2)),
-                          legend_title="Project")   # Condition
-    else:
-        fig.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
-                          xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Project")     # Project
+    figP = px.scatter(x=d1, y=d2, color=target.Project, hover_name=target.ID,
+                      hover_data={'condition': target.Condition, 'case_id': target.CaseID},
+                      # replaces default color mapping by value
+                      #color_discrete_map={'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B',
+                      #                    'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'},
+                      template="simple_white")
 
-    fig.update_traces(marker=go.scatter.Marker(size=20))
-    fig.show()
+    figC = px.scatter(x=d1, y=d2, color=target.Condition, hover_name=target.ID,
+                      hover_data={'project': target.Project, 'case_id': target.CaseID},
+                      # color_discrete_map={0: '#EF553B', 1: '#636EFA'},
+                      template="simple_white")
+
+    if method == 'pca':
+        figC.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
+                           xaxis_title="PC1 - explained variance: " + str(round(evr1 * 100, 2)),
+                           yaxis_title="PC2 - explained variance: " + str(round(evr2 * 100, 2)),
+                           legend_title="Condition",
+                           colorway=['#636EFA', '#EF553B'])
+        figP.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
+                           xaxis_title="PC1 - explained variance: " + str(round(evr1 * 100, 2)),
+                           yaxis_title="PC2 - explained variance: " + str(round(evr2 * 100, 2)),
+                           legend_title="Project", colorway=['#EF553B', '#636EFA', '#00CC96', '#AB63FA'])
+    else:
+        figC.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
+                           xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Condition",
+                           colorway=['#636EFA', '#EF553B'])
+        figP.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
+                           xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Project",
+                           colorway=['#EF553B','#636EFA', '#00CC96', '#AB63FA'])
+
+    figC.update_traces(marker=go.scatter.Marker(size=20))
+    # figC.update_xaxes(showgrid=False) # only when plotly_white theme
+    # figC.update_yaxes(showgrid=False)
+    figC.show()
+    figP.update_traces(marker=go.scatter.Marker(size=20))
+    # figP.update_xaxes(showgrid=False)  # , zeroline=False
+    # figP.update_yaxes(showgrid=False)
+    figP.show()
+    # export to html
     if not os.path.exists(outpath):
         os.mkdir(outpath)
-    # fig.write_image(outpath + str(method) + "_tpm_from_featureCounts_condition_plot.png")
-    fig.write_html(outpath + str(method) + "_tpm_combatseq_no_outlier_plot.html")
+    figC.write_html(outpath + str(method) + '_' + title_dataset.lower() + "_condition.html")
+    figP.write_html(outpath + str(method) + '_' + title_dataset.lower() + "_project.html")
+
+    # make marker sizes smaller for pdf pictures
+    figC.update_traces(marker=go.scatter.Marker(size=5))
+    figP.update_traces(marker=go.scatter.Marker(size=5))
+    figC.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_condition.pdf")
+    figP.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_project.pdf")
 
 
 def comparison_dim_reduction(X, target, outpath):
@@ -243,7 +290,7 @@ def comparison_dim_reduction(X, target, outpath):
         t1 = time()
         print("%s: %.2g sec" % (label, t1 - t0))
         ax = fig.add_subplot(1, 3, 1 + i)
-        ax.scatter(Y[:, 0], Y[:, 1], c=target) # , cmap=plt.cm.Spectral), cmap=plt.cm.Set2
+        ax.scatter(Y[:, 0], Y[:, 1], c=target)  # , cmap=plt.cm.Spectral), cmap=plt.cm.Set2
         ax.set_title("%s (%.2g sec)" % (label, t1 - t0))
         ax.xaxis.set_major_formatter(NullFormatter())
         ax.yaxis.set_major_formatter(NullFormatter())
@@ -256,7 +303,7 @@ def comparison_dim_reduction(X, target, outpath):
     plt.savefig(outpath + "comparison_plot.png", format='png')
 
 
-def plotly_comparison(data, target, annos, conditions, outpath):
+def plotly_comparison(data, pcolor_list, ccolor_list, annos, outpath, title_dataset):
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(data)
     d1 = X_pca[:, 0]
@@ -264,33 +311,38 @@ def plotly_comparison(data, target, annos, conditions, outpath):
     evr1 = pca.explained_variance_ratio_[0]
     evr2 = pca.explained_variance_ratio_[1]
 
-    tsne = TSNE(n_components=2, random_state=0)
+    tsne = TSNE(n_components=2, random_state=0)  # ,  perplexity=20
     X_embedded = tsne.fit_transform(data)
     t1 = X_embedded[:, 0]
     t2 = X_embedded[:, 1]
 
-    reducer = umap.UMAP(random_state=42)
+    reducer = umap.UMAP(random_state=42)  # , n_neighbors=30, min_dist=0.0
     embedding = reducer.fit_transform(data)
     u1 = embedding[:, 0]
     u2 = embedding[:, 1]
 
     fig = make_subplots(rows=2, cols=3, subplot_titles=("PCA", "t-SNE", "UMAP"))
-    fig.add_trace(go.Scatter(x=d1, y=d2, mode='markers', marker=dict(color=target)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=t1, y=t2, mode='markers', marker=dict(color=target)), row=1, col=2)
-    fig.add_trace(go.Scatter(x=u1, y=u2, mode='markers', marker=dict(color=target)), row=1, col=3)
-    fig.update_traces(hovertext='ID: ' + annos.ID + '<br>' + 'Project: ' + annos.Project + '<br>' + 'Condition: ' + annos.Condition + '<br>' + 'CaseID: ' + annos.CaseID)
+    fig.add_trace(go.Scatter(x=d1, y=d2, mode='markers', marker=dict(color=pcolor_list)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=t1, y=t2, mode='markers', marker=dict(color=pcolor_list)), row=1, col=2)
+    fig.add_trace(go.Scatter(x=u1, y=u2, mode='markers', marker=dict(color=pcolor_list)), row=1, col=3)
+    fig.update_traces(hovertext='ID: ' + annos.ID + '<br>' + 'Project: ' + annos.Project + '<br>' + 'Condition: ' +
+                                annos.Condition + '<br>' + 'CaseID: ' + annos.CaseID)
     # fig.update_traces(marker_color=target)
-    fig.add_trace(go.Scatter(x=d1, y=d2, mode='markers', marker=dict(color=conditions)), row=2, col=1)
-    fig.add_trace(go.Scatter(x=t1, y=t2, mode='markers', marker=dict(color=conditions)), row=2, col=2)
-    fig.add_trace(go.Scatter(x=u1, y=u2, mode='markers', marker=dict(color=conditions)), row=2, col=3)
-    fig.update_traces(hovertext='ID: ' + annos.ID + '<br>' + 'Project: ' + annos.Project + '<br>' + 'Condition: ' + annos.Condition + '<br>' + 'CaseID: ' + annos.CaseID)
+    fig.add_trace(go.Scatter(x=d1, y=d2, mode='markers', marker=dict(color=ccolor_list)), row=2, col=1)
+    fig.add_trace(go.Scatter(x=t1, y=t2, mode='markers', marker=dict(color=ccolor_list)), row=2, col=2)
+    fig.add_trace(go.Scatter(x=u1, y=u2, mode='markers', marker=dict(color=ccolor_list)), row=2, col=3)
+    fig.update_traces(hovertext='ID: ' + annos.ID + '<br>' + 'Project: ' + annos.Project + '<br>' + 'Condition: ' +
+                                annos.Condition + '<br>' + 'CaseID: ' + annos.CaseID)
     # fig.update_traces(marker_color=conditions)
-    fig.update_layout(showlegend=False, width=2000, height=1200, title_text='Dimensionality Reduction Comparison ComBat corrected')
+    fig.update_layout(template="simple_white", width=2000, height=1200, showlegend=False,
+                      title_text='Dimensionality Reduction Comparison')
     fig.show()
 
     if not os.path.exists(outpath):
         os.mkdir(outpath)
-    fig.write_html(outpath + "comparison_combat.html")
+    fig.write_html(outpath + "comparison_" + title_dataset.lower() + ".html")
+    fig.write_image(
+        outpath + "comparison_" + title_dataset.lower() + ".pdf")  # plotly-orca not working --> now using kaleido
 
 
 def silhouette_plot(data, target):
@@ -320,7 +372,6 @@ def silhouette_plot(data, target):
     # embedding = tsne.fit_transform(data)
 
     for i, condition in enumerate(clusters):
-
         # Compute the silhouette score average
         silhouette_avg = silhouette_score(embedding, target)
         # Compute the silhouette scores for each sample
