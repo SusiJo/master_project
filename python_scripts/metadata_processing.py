@@ -1,5 +1,9 @@
 """ This script serves to process metadata from TCGA, ICGC, SRA and outputs a standardized table
     Metadata Table [sample_id, case_id, condition, bio_project]
+
+    usage:
+    python metadata_processing.py -i <path-to-fileEndpt-json> ... -s <path-to-csv-files> -t <path-to-json>
+    -t <path-to-json> ... -o <outpath.csv>
 """
 
 # imports
@@ -15,7 +19,7 @@ import fileUtils.file_handling as fh
 
 
 @click.command()
-@click.option('-i', '--icgc', prompt='paths to ICGC json metadata files',
+@click.option('-i', '--icgc', prompt='paths to ICGC json metadata files FILE Endpoint',
               help='Path to folder with ICGC metadata in json format', multiple=True)
 @click.option('-s', '--sra', prompt='path to SRA csv metadata files',
               help='Path to folder with SRA metadata in csv format')
@@ -33,17 +37,17 @@ def main(icgc, sra, tcga, outpath):
         icgc_files = fh.get_files(folder, '*.json')
         icgc_metadata = parse_icgc_json_files(icgc_files)
         df = pd.DataFrame.from_dict(icgc_metadata, orient='index',
-                                 columns=['Case', 'Sample_Type', 'Project'])
+                                 columns=['CaseID', 'SampleType', 'Project'])
 
         df.reset_index(level=0, inplace=True)
-        df.rename({'index': 'File_ID'}, axis=1, inplace=True)
+        df.rename({'index': 'FileID'}, axis=1, inplace=True)
         dfs.append(df)
 
     # SRA (assumed to be in one folder)
     sra_files = fh.get_files(sra, '*.csv')
     sra_metadata = fh.parse_csv(sra_files)
     df_sra = pd.DataFrame.from_dict(sra_metadata, orient='index',
-                                columns=['Case', 'Sample_Type', 'Project'])
+                                columns=['CaseID', 'SampleType', 'Project'])
 
     df_sra.reset_index(level=0, inplace=True)
     df_sra.rename({'index': 'File_ID'}, axis=1, inplace=True)
@@ -55,10 +59,10 @@ def main(icgc, sra, tcga, outpath):
         tcga_files = fh.get_files(folder, '*.json')
         tcga_metadata = parse_tcga_json_files(tcga_files)
         df = pd.DataFrame.from_dict(tcga_metadata, orient='index',
-                                    columns=['Case', 'Sample_Type', 'Project'])
+                                    columns=['CaseID', 'SampleType', 'Project'])
 
         df.reset_index(level=0, inplace=True)
-        df.rename({'index': 'File_ID'}, axis=1, inplace=True)
+        df.rename({'index': 'FileID'}, axis=1, inplace=True)
         dfs.append(df)
 
     # Make Dataframe
