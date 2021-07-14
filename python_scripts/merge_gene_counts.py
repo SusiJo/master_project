@@ -41,7 +41,7 @@ def main(inpath, outpath, pseudogenes):
     if pseudogenes:
         pseudogenes_df = pd.read_csv(pseudogenes, sep='\t', header=None)
         pseudogene_list = pseudogenes_df.iloc[:, 0]
-        # print(pseudogene_list)
+        print("Number of pseudogenes: ", len(pseudogene_list))
         merge_frames(allfiles, outpath, pseudogene_list=pseudogene_list)
     else:
         merge_frames(allfiles, outpath, pseudogene_list=None)
@@ -62,38 +62,47 @@ def merge_frames(files, outpath, pseudogene_list):
     """
 
     dfs = list()
-    sample_ids = list()
     for filename in files:
-        print(filename)
+        # print(filename)
         df = pd.read_csv(filename, sep='\t')
-        # save ids as list
-        id_list = df.columns[2:]
-        # transform into shorter ids
-        short_id_list = [i.split(".")[1] if i.startswith('PCAWG') else i.split("(_1)?Aligned")[0] for i in id_list]
-        sample_ids.extend(short_id_list)
-        print(short_id_list)
-
         df.rename(columns={"Geneid": "GeneID", "gene_name": "GeneName"}, inplace=True)
         dfs.append(df)
 
     # merge dataframes column-wise based on 2 key columns, axis=1
     df_final = reduce(lambda left, right: pd.merge(left, right, on=['GeneID', 'GeneName']), dfs)
+    df_final.sort_values(by='GeneID', inplace=True)
+
+    # if duplicates present, remove them
+    long_sample_ids = df_final.columns[2:].tolist()
+    mask = [i for i in long_sample_ids if i.endswith('_y')]
+    to_select = df_final.columns[~df_final.columns.isin(mask)]
+    # remove duplicates
+    df_no_dups = df_final[to_select].copy()
+    sample_ids_no_dups = df_no_dups.columns[2:].tolist()
+
+    # make ids shorter
     col_names = ['GeneID', 'GeneName']
-    col_names.extend(sample_ids)
-    df_final.columns = col_names
-    df.sort_values(by='GeneID', inplace=True)
+    short_id_list = [i.split(".")[1] if i.startswith('PCAWG') else re.split("((_1)?Aligned)|(.sra)|(_gdc)", i)[0]
+                     for i in sample_ids_no_dups]
 
+    col_names.extend(short_id_list)
+    df_no_dups.columns = col_names
+
+    # save dataframe as output
     outpath_suffix = outpath + '.txt'
-    df_final.to_csv(outpath_suffix, sep='\t', index=False)
+    df_no_dups.to_csv(outpath_suffix, sep='\t', index=False)
 
-    # apply filter to remove pseudogenes
+    # apply filter to remove pseudogenes if list provided and save additionally
     if pseudogene_list is not None:
-        inverse_boolean_series = ~df_final.GeneID.isin(pseudogene_list)
-        filtered_df = df_final[inverse_boolean_series].copy()
+        inverse_boolean_series = ~df_no_dups.GeneID.isin(pseudogene_list)
+        filtered_df = df_no_dups[inverse_boolean_series].copy()
         filtered_df.sort_values(by='GeneID', inplace=True)
         filtered_outpath = outpath + "_reduced_geneset.txt"
         filtered_df.to_csv(filtered_outpath, sep='\t', index=False)
 
+    # Print INFO
+    print("Number of samples merged_gene_table: ", df_no_dups.columns[2:])
+
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
