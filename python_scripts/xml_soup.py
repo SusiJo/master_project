@@ -8,7 +8,6 @@ import re
 import time
 import sys
 
-
 # Create logger
 logger = logging.getLogger('SRA metadata reader')
 # Create console handler
@@ -25,11 +24,11 @@ logger.setLevel(logging.INFO)
 @click.option('-x', '--xml', prompt='path to xml metadata files',
               help='Path to folder with metadata in xml format',
               required=True)
-@click.option('-o', '--outpath', prompt='path for output table (Experiment & Runinfo)',
-              help='Table with metadata (Experiment xml, Runinfo csv) metadata in csv format',
+@click.option('-o', '--outpath', prompt='path for output table ',
+              help='Table with rich metadata and short metadata table in csv format.\n'
+                   'Extension is filled automatically.',
               required=True)
 def main(xml, outpath):
-
     start_time = time.time()
 
     logger.info('Get files')
@@ -136,7 +135,7 @@ def parse_soup(xml_files, outpath):
                 if soup.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE.TAG.text == 'source_name':
                     source_name = soup.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE.VALUE.text
 
-                # Extract all possible sample attribute tags
+                    # Extract all possible sample attribute tags
                 sample_attributes = [(repr(sibling.TAG.text), repr(sibling.VALUE.text)) for sibling in
                                      soup.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE.next_siblings]
 
@@ -221,6 +220,9 @@ def parse_soup(xml_files, outpath):
                                  cancer_type, diagnosis, health_state, label, description, rna_source
                                  ]
 
+                # disease state missing
+                # cause of resections missing
+
     normal = re.compile(r"([N|n]on-?\_?[T|t]umor)|([N|n]on-?\_?[C|c]ancer)|(normal)|([H|h]ealthy)|([C|c]ontr?ol)"
                         r"|(\_ant)|(adjacent)|([\_|-]N\d)|(\dN;?)|([N|n]or)|([C|c]trl)|((B|(MC))-?\d+[\_]RNA-Seq)",
                         re.IGNORECASE)
@@ -243,7 +245,7 @@ def parse_soup(xml_files, outpath):
         if v[-1] == '' and any(tumor_list):
             v[-1] = 'tumor'
 
-    # create dataframe
+    # create dataframe from rich metadata
     df = pd.DataFrame.from_dict(metadata, orient='index',
                                 columns=['Experiment_title', 'Study_ref', 'Library_name', 'Library_strategy',
                                          'Library_selection', 'BioSample', 'Sample_title', 'Taxon_id', 'Taxon_name',
@@ -258,7 +260,14 @@ def parse_soup(xml_files, outpath):
     # save dataframe on disk
     df.reset_index(level=0, inplace=True)
     df.rename({'index': 'RunID'}, axis=1, inplace=True)
-    df.to_csv(outpath, header=True, index=False)
+    df.to_csv(outpath + '.csv', header=True, index=False)
+
+    # save metadata table additionally as short table
+    metadata_df = df[['RunID', 'BioSample', 'Condition', 'Study_ref']].copy()
+    metadata_df.rename(
+        columns={'RunID': 'FileID', 'BioSample': 'CaseID', 'Condition': 'SampleType', 'Study_ref': 'Project'},
+        inplace=True)
+    metadata_df.to_csv(outpath + '_short.csv', header=True, index=False)
 
 
 if __name__ == "__main__":
