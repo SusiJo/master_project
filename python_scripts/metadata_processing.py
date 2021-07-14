@@ -21,7 +21,7 @@ import fileUtils.file_handling as fh
 @click.command()
 @click.option('-i', '--icgc', prompt='paths to ICGC json metadata files FILE Endpoint',
               help='Path to folder with ICGC metadata in json format', multiple=True)
-@click.option('-s', '--sra', prompt='path to SRA csv metadata files',
+@click.option('-s', '--sra', prompt='paths to SRA csv metadata files',
               help='Path to folder with SRA metadata in csv format')
 @click.option('-t', '--tcga', prompt='paths to TCGA json metadata files',
               help='Path to folder with TCGA metadata in json format', multiple=True)
@@ -37,7 +37,7 @@ def main(icgc, sra, tcga, outpath):
         icgc_files = fh.get_files(folder, '*.json')
         icgc_metadata = parse_icgc_json_files(icgc_files)
         df = pd.DataFrame.from_dict(icgc_metadata, orient='index',
-                                 columns=['CaseID', 'SampleType', 'Project'])
+                                    columns=['CaseID', 'SampleType', 'Project'])
 
         df.reset_index(level=0, inplace=True)
         df.rename({'index': 'FileID'}, axis=1, inplace=True)
@@ -47,7 +47,7 @@ def main(icgc, sra, tcga, outpath):
     sra_files = fh.get_files(sra, '*.csv')
     sra_metadata = fh.parse_csv(sra_files)
     df_sra = pd.DataFrame.from_dict(sra_metadata, orient='index',
-                                columns=['CaseID', 'SampleType', 'Project'])
+                                    columns=['CaseID', 'SampleType', 'Project'])
 
     df_sra.reset_index(level=0, inplace=True)
     df_sra.rename({'index': 'File_ID'}, axis=1, inplace=True)
@@ -131,6 +131,4 @@ def parse_icgc_json_files(files):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
-
-
+    main()
