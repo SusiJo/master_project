@@ -1,4 +1,9 @@
-# This script merges TPM/featureCounts values from replica
+""" Script to merge stringTieFPKM TPM or featureCounts raw count values
+    outputs: - merged_replica_table
+             - merged_gene_table
+             - new_metadata with new ids
+             - new_metadata with batch information encoded as INT
+"""
 
 # imports
 import click
@@ -27,7 +32,7 @@ logger.setLevel(logging.INFO)
               help='Path to table in csv format',
               required=True)
 @click.option('-o', '--outpath', prompt='output table',
-              help='Output table with median merged replica ',
+              help='Output table with median merged replica (TXT). Extension filled automatically',
               required=True)
 def main(inpath, metadata, outpath):
     start_time = time.time()
@@ -98,9 +103,9 @@ def merge_replica(inpath, meta_table, outpath):
 
     # print("Meta before sorting\n", meta_table)
     # sort metadata according to sample_ids
-    meta_table.File_ID = meta_table.File_ID.astype("category")
-    meta_table.File_ID.cat.set_categories(sample_ids, inplace=True)
-    meta_table = meta_table.sort_values('File_ID')
+    meta_table.FileID = meta_table.FileID.astype("category")
+    meta_table.FileID.cat.set_categories(sample_ids, inplace=True)
+    meta_table = meta_table.sort_values('FileID')
     # print("Meta after sorting\n", meta_table)
 
     # attach info to merge replica on
@@ -111,10 +116,6 @@ def merge_replica(inpath, meta_table, outpath):
     p_dict = dict(zip(case_id, project))
 
     mapping = zip(sample_ids, zip(file_id, case_id))
-    # for i,e in enumerate(mapping):
-    #   print(e)
-    #   if i == 5:
-    #       break
 
     dft.insert(0, 'CaseID', case_id)
     dft.insert(1, 'SampleType', sample_type)
@@ -167,7 +168,21 @@ def merge_replica(inpath, meta_table, outpath):
 
     metadata_new.to_csv(outpath + "_metadata_new.csv", index=False)
 
+    # annotate metadata with Batches
+    project_series = pd.Series(metadata_new.Project)
+    projects_set = set(metadata_new.Project)
+    batches = [i for i in range(1, len(projects_set) + 1)]
+    project_batch_dict = dict(zip(projects_set, batches))
+    metadata_new['Batch'] = project_series.map(project_batch_dict)
+    metadata_new.to_csv(outpath + "_metadata_new_batches.csv", sep=';', index=False)
+
+    # print info
+    print("number of samples gene_count_table ", len(dft_new.columns[2:]))
+    print("number of samples in metadata table ", len(metadata_new))
+    print("No. Normal samples: ", len(metadata_new[metadata_new.SampleType == 'normal']))
+    print("No. Tumor samples: ", len(metadata_new[metadata_new.SampleType == 'tumor']))
+
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
 
