@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
 # The purpose of this script is to
-# 1) Transform the merged TPM data such that is can by used by ML: row = sample, col = gene (feature)
+# 1) Transform the merged data (stringTie, featureCounts) such
+#    that is can by used by ML: row = sample, col = gene (feature)
 # 2) Scale the data with MinMaxScaler from scikit-learn on genes = columns
 # 3) Create a dictionary like structure for storage target_names = label [tumor, control]
 # {data: array[], target: array[], target_names: array[], feature_names: array[]}
@@ -13,6 +14,7 @@ import sys
 import click
 import numpy as np
 import pandas as pd
+from random import randint
 
 from fileUtils.file_handling import read_tpm
 import plotly.express as px
@@ -31,12 +33,12 @@ from collections import OrderedDict
 
 
 @click.command()
-@click.option('-i', '--inpath', prompt='merged table stringTieTPM or featureCounts.txt',
-              help='Path to file with merged TPM/featureCounts table',
-              required=True)
-@click.option('-m', '--metadata', prompt='path to metadata',
-              help='Path to file with metadata',
-              required=True)
+@click.option('-i', '--inpath', required=False,
+              help='Please enter path to file with merged TPM/featureCounts table without replica')
+@click.option('--merged_replica', required=False,
+              help='Please enter path to merged_gene_counts_table.txt with merged replica merged')
+@click.option('-m', '--metadata', prompt='path to metadata', required=True,
+              help='Path to file with metadata')
 @click.option('-o', '--outpath', prompt='path to image folder', required=True)
 @click.option('--pca/--no-pca', help='perform PCA analysis', default=False)
 @click.option('--tsne/--no-tsne', help='perform t-SNE analysis', default=False)
@@ -44,27 +46,57 @@ from collections import OrderedDict
 @click.option('--comparison/--no-comparison', help='perform Comparison analysis', default=False)
 @click.option('--silhouette/--no-silhouette', help='perform Silhouette analysis', default=False)
 @click.option('-t', '--title', prompt='figure title', help='enter title for figure', required=True)
-def main(inpath, outpath, metadata, pca, tsne, umap, comparison, silhouette, title):
-    print("Reading data...")
-    sample_ids, gene_ids, feature_names, data = read_tpm(inpath)
-    # print("sample ids", sample_ids)
-    # print("data", data)
+def main(inpath, merged_replica, metadata, outpath, pca, tsne, umap, comparison, silhouette, title):
+    if inpath:
+        print("Reading data...")
+        sample_ids, gene_ids, feature_names, data = read_tpm(inpath)
+        # print("sample ids", sample_ids)
+        # print("data", data)
 
-    # convert data to numpy array for scaling and transpose to scale on genes
-    # shape = (features, samples)
-    new_data = np.array(data, dtype=float)
+        # convert data to numpy array for scaling and transpose to scale on genes
+        # shape = (features, samples)
+        new_data = np.array(data, dtype=float)
 
-    # Transpose data for Dimensionality reduction
-    # shape = (samples, features)
-    print("Transposing data...")
-    dataT = np.transpose(new_data)
+        # Transpose data for Dimensionality reduction
+        # shape = (samples, features)
+        print("Transposing data...")
+        dataT = np.transpose(new_data)
+        # scaling on the "columns" = per gene feature such that gene expr. values between (-1,1)
+        print("Scaling data...")
+        scaled_data = scaling(dataT)
+        print("Reading metadata...")
+        meta, target_names, target, annotations, project, pcolor_list, ccolor_list = read_metadata(metadata, sample_ids)
 
-    # scaling on the "columns" = per gene feature such that gene expr. values between (-1,1)
-    print("Scaling data...")
-    scaled_data = scaling(dataT)
+    if merged_replica:
 
-    print("Reading metadata...")
-    meta, target_names, target, annotations, project, pcolor_list, ccolor_list = read_metadata(metadata, sample_ids)
+        df = pd.read_csv(merged_replica, sep="\t")
+        case_ids = df.iloc[:, 0].tolist()
+        target_names = df.iloc[:, 1].tolist()
+        target = df.iloc[:, 2].tolist()
+
+        project_series = df.iloc[:, 3]
+        project_set = set(project_series)
+        project_dict = {v: 0 + k for k, v in enumerate(project_set)}
+        project_arr = [project_dict[k] for k in project_series]
+
+        unique_ids = df.iloc[:, 4].tolist()
+        df = df.drop(['CaseID', 'SampleType', 'Condition', 'Project'], axis=1)
+
+        cdict = {0: '#EF553B', 1: '#636EFA'}
+        ccolor_list = [cdict[k] for k in target]
+
+        plist = []
+        for i in range(len(project_set)):
+            plist.append('#{:06x}'.format(randint(0, 256 ** 3)))
+        pdict = dict(zip(project_set, plist))
+        pcolor_list = project_series.map(pdict)
+
+        annotations = pd.DataFrame({'ID': unique_ids, 'Condition': target_names,
+                                    'CaseID': case_ids, 'Project': project_series})
+        annotations['ID'] = annotations['ID'].astype(str)
+
+        df.set_index(['UniqueID'], inplace=True)
+        scaled_data = scaling(df)
 
     print("Plotly comparison...")
     plotly_comparison(scaled_data, pcolor_list, ccolor_list, annotations, outpath, title)
@@ -88,14 +120,15 @@ def main(inpath, outpath, metadata, pca, tsne, umap, comparison, silhouette, tit
 
 def read_metadata(metadata, sample_ids):
     """Read in metadata file csv format
-    FileID, SampleType, CaseID, Project
+    FileID, CaseID, SampleType, Project
 
     :return: meta_dict
     :return: target_names: dict
-    :return: target: array
-    :return: annotation: pd.DataFramepcolor
-    :return: project_arr
-    :return: color_list
+    :return: target: array [0,1,0,0,1,1,1,0...]
+    :return: annotation: pd.DataFrame {ID, Condition, CaseID, Project}
+    :return: project_arr: numerical encoding of projects [0,1,1,2,0,3,...]
+    :return: color_list: color list for conditions
+    :return: pcolor_list: project color list
     """
     meta_dict = {}
     with open(metadata, 'r') as file:
@@ -106,30 +139,36 @@ def read_metadata(metadata, sample_ids):
             sample_type = fields[2].strip()
             project = fields[3].strip()
             if file_id not in meta_dict:
-                meta_dict[file_id] = [sample_type, case, project]
+                meta_dict[file_id] = [case, sample_type, project]
 
+    # dict mapping sample_ids to target conditions as strings
     target_names = {}
     for i, e in enumerate(sample_ids):
         if e not in target_names.keys():
-            target_names[e] = meta_dict[e][0]
+            target_names[e] = meta_dict[e][1]
+    print("target names\n", target_names)
 
+    # target array of conditions encoded as 0,1
     target = [0 if value == 'normal' else 1 for key, value in target_names.items()]
+    print("target\n", target)
 
     # Create Dataframe object for annotations for plots
-    # sort the metadata
+    # sort the metadata dictionary according to order of sample_target_names
     sorted_meta = OrderedDict([(el, meta_dict[el]) for el in target_names])
-    # print("sorted meta ", sorted_meta)
+    print("sorted meta ", sorted_meta)
     tmp = {0 + i: [k, sorted_meta.get(k)] for i, k in enumerate(sorted_meta)}
 
     annos = pd.DataFrame.from_dict(tmp, orient='index')
+    print("annos\n", annos)
     # expand list with metadata into own series
     tags = annos.iloc[:, 1].apply(pd.Series)
-    tags.rename({0: 'Condition', 1: 'CaseID', 2: 'Project'}, axis=1, inplace=True)
+    tags.rename({0: 'CaseID', 1: 'Condition', 2: 'Project'}, axis=1, inplace=True)
     # print("tags ", tags)
     # concat dataframes
     annotations = pd.concat([annos[:], tags[:]], axis=1)
     annotations.drop([1], axis=1, inplace=True)
     annotations.rename({0: 'ID'}, axis=1, inplace=True)
+    print("Annotations\n ", annotations)
 
     project_series = annotations.iloc[:, 3]
     # print("project series\n", project_series)
@@ -145,7 +184,15 @@ def read_metadata(metadata, sample_ids):
     color_tups = list(zip(project_set, c))
     # color_dict = {e[0]: e[1] for e in color_tups}
     # pdict = {'GTEx-PRJNA75899': '#EF553B', 'TCGA-PAAD': '#AB63FA', 'PACA-AU': '#00CC96', 'PACA-CA': '#636EFA'}
-    pdict = {'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
+    # pdict = {'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
+    pdict = {'SRP030040': '#85660D', 'SRP058626': '#782AB6', 'SRP187978': '#565656', 'SRP050003': '#1C8356',
+             'SRP029880': '#16FF32', 'SRP137150': '#F7E1A0', 'SRP102722': '#E2E2E2', 'SRP026600': '#1CBE4F',
+             'SRP064138': '#C4451C', 'SRP068551': '#DEA0FD', 'SRP062885': '#FE00FA', 'SRP069212': '#325A9B',
+             'SRP048907': '#FEAF16', 'SRP050551': '#F8A19F', 'SRP076032': '#90AD1C', 'SRP068976': '#F6222E',
+             'SRP070723': '#1CFFCE', 'SRP108560': '#2ED9FF', 'SRP056696': '#B10DA1', 'SRP040998': '#C075A6',
+             'SRP118972': '#FC1CBF', 'SRP039694': '#B00068', 'SRP174502': '#FBE426', 'SRP049592': '#FA0087',
+             'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
+
     # print('Color-dict\n', pdict) #color_dict
     # color_list = [pdict[k] for k in project_list] #color_dict
     pcolor_list = project_series.map(pdict)
@@ -153,7 +200,7 @@ def read_metadata(metadata, sample_ids):
     # print('color-list\n', pcolor_list)
 
     # target condition colors
-    cdict = {0: '#EF553B', 1: '#636EFA'}
+    cdict = {0: '#636EFA', 1: '#EF553B'}
     ccolor_list = [cdict[k] for k in target]
     # print("cond_colors\n", ccolor_list)
     # print(ccolor_list)
@@ -185,6 +232,12 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     :param title_dataset: i.e. Pancreas ComBat corrected
     """
 
+    colors = ['#85660D', '#782AB6', '#565656', '#1C8356', '#16FF32', '#F7E1A0', '#E2E2E2', '#1CBE4F', '#C4451C',
+              '#DEA0FD', '#FE00FA', '#325A9B', '#FEAF16', '#F8A19F', '#90AD1C', '#F6222E', '#1CFFCE', '#2ED9FF',
+              '#B10DA1', '#C075A6', '#FC1CBF', '#B00068', '#FBE426', '#FA0087', '#EF553B', '#636EFA', '#00CC96',
+              '#AB63FA']
+    colors2 = ['#EF553B', '#636EFA', '#00CC96', '#AB63FA']
+
     if method == 'pca':
         print("Performing pca for plotting...")
         pca = PCA(n_components=2)
@@ -213,43 +266,36 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
         d2 = embedding[:, 1]
 
     # Plotting
-    figP = px.scatter(x=d1, y=d2, color=target.Project, hover_name=target.ID,
-                      hover_data={'condition': target.Condition, 'case_id': target.CaseID},
-                      # replaces default color mapping by value
-                      #color_discrete_map={'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B',
-                      #                    'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'},
-                      template="simple_white")
-
     figC = px.scatter(x=d1, y=d2, color=target.Condition, hover_name=target.ID,
                       hover_data={'project': target.Project, 'case_id': target.CaseID},
-                      # color_discrete_map={0: '#EF553B', 1: '#636EFA'},
+                      template="simple_white", color_discrete_sequence=['#636EFA', '#EF553B'])  # px.colors.qualitative.Plotly
+
+    figP = px.scatter(x=d1, y=d2, color=target.Project, hover_name=target.ID,
+                      hover_data={'condition': target.Condition, 'case_id': target.CaseID},
                       template="simple_white")
 
     if method == 'pca':
         figC.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
                            xaxis_title="PC1 - explained variance: " + str(round(evr1 * 100, 2)),
                            yaxis_title="PC2 - explained variance: " + str(round(evr2 * 100, 2)),
-                           legend_title="Condition",
-                           colorway=['#636EFA', '#EF553B'])
+                           legend_title="Condition")  # , colorway= ['#636EFA', '#EF553B'])   # blue, red
+
         figP.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
                            xaxis_title="PC1 - explained variance: " + str(round(evr1 * 100, 2)),
                            yaxis_title="PC2 - explained variance: " + str(round(evr2 * 100, 2)),
-                           legend_title="Project", colorway=['#EF553B', '#636EFA', '#00CC96', '#AB63FA'])
+                           legend_title="Project", colorway=colors)
     else:
         figC.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
-                           xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Condition",
-                           colorway=['#636EFA', '#EF553B'])
+                           xaxis_title="Dim1", yaxis_title="Dim2",
+                           legend_title="Condition")  # colorway=px.colors.qualitative.Plotly# ['#636EFA', '#EF553B']) # blue, red
+
         figP.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
                            xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Project",
-                           colorway=['#EF553B','#636EFA', '#00CC96', '#AB63FA'])
+                           colorway=colors)
 
-    figC.update_traces(marker=go.scatter.Marker(size=20))
-    # figC.update_xaxes(showgrid=False) # only when plotly_white theme
-    # figC.update_yaxes(showgrid=False)
+    figC.update_traces(marker={'size': 20})  # (marker=go.scatter.Marker(size=20))
     figC.show()
-    figP.update_traces(marker=go.scatter.Marker(size=20))
-    # figP.update_xaxes(showgrid=False)  # , zeroline=False
-    # figP.update_yaxes(showgrid=False)
+    figP.update_traces(marker={'size': 20})  # (marker=go.scatter.Marker(size=20))
     figP.show()
     # export to html
     if not os.path.exists(outpath):
@@ -257,9 +303,9 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     figC.write_html(outpath + str(method) + '_' + title_dataset.lower() + "_condition.html")
     figP.write_html(outpath + str(method) + '_' + title_dataset.lower() + "_project.html")
 
-    # make marker sizes smaller for pdf pictures
-    figC.update_traces(marker=go.scatter.Marker(size=5))
-    figP.update_traces(marker=go.scatter.Marker(size=5))
+    # reduce marker sizes for pdf pictures
+    figC.update_traces(marker={'size': 5})  # (marker=go.scatter.Marker(size=5))
+    figP.update_traces(marker={'size': 5})  # (marker=go.scatter.Marker(size=5))
     figC.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_condition.pdf")
     figP.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_project.pdf")
 
