@@ -2,6 +2,8 @@
 ######################
 .DS_Store
 
+Batch_Correction.Rmd
+Batch_Correction_liver.ipynb
 .RData
 .RDataTmp
 .Rhistory
