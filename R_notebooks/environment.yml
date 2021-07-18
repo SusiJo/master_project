@@ -1,0 +1,19 @@
+name: susijo-batch-correction
+channels:
+    - defaults
+    - conda-forge
+    - r
+    - bioconda
+dependencies:
+    - r-base=4.1.0
+    - bioconda::bioconductor-sva=3.40.0
+    - bioconda::bioconductor-limma=3.48.0
+    - conda-forge::r-ggplot2=3.3.5
+    - conda-forge::r-gridextra=2.3
+    - conda-forge::r-gridgraphics
+    - conda-forge::r-ggpubr=0.4.0
+    - conda-forge::r-data.table=1.14.0
+    - conda-forge::r-optparse=1.6.6
+    - conda-forge::r-tidyverse=1.3.1
+    - conda-forge::r-tibble=3.1.2
+    
