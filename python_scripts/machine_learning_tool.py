@@ -5,11 +5,13 @@
     declare -a classifiers=("LinearSVC" "SVC" "RandomForest" "MultiLayerPerceptron" )
 
     for val in ${classifiers[@]}; do \
-    echo Starting to train $val classifier \
-    python app/machine_learning_tool.py -i \
-    /mnt/volume/ml-container/data/all_liver_uncorrected_fcounts_tpm_reduced_geneset.txt -m \
-    /mnt/volume/ml-container/data/03_all_liver_filtered_merged_replica_metadata_new.csv -a $val \
-    -o /mnt/volume/ml-container/results/ -t all_liver_uncorrected_tpm \
+        echo Starting to train $val classifier \
+        python app/machine_learning_tool.py \
+        -i  <INPATH.TXT> \
+        -m <METADATA.CSV> \
+        -a $val \
+        -o <DEST-DIR>  \
+        -t <TITLE> \
     done
 
 """
@@ -24,23 +26,19 @@ import os
 import pandas as pd
 import numpy as np
 import fileUtils.metadata_handling as mh
-import matplotlib.pyplot as plt
+
 
 # imports scikit-learn
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error, confusion_matrix, precision_score, recall_score, f1_score
-from sklearn.model_selection import train_test_split, StratifiedShuffleSplit, StratifiedKFold
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.model_selection import cross_val_score, cross_val_predict, cross_validate
+from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.metrics import plot_confusion_matrix
 from sklearn.metrics import plot_roc_curve
-from sklearn.model_selection import train_test_split, StratifiedShuffleSplit, StratifiedKFold, GridSearchCV
+from sklearn.model_selection import train_test_split, StratifiedShuffleSplit, StratifiedKFold
 
 # scores
-from sklearn.metrics import accuracy_score, precision_score, recall_score, balanced_accuracy_score,  \
-    matthews_corrcoef
-from sklearn.metrics import classification_report, make_scorer
+from sklearn.metrics import accuracy_score, precision_score, recall_score, balanced_accuracy_score
+from sklearn.metrics import classification_report, make_scorer, matthews_corrcoef
 
 # classifiers
 from sklearn.neural_network import MLPClassifier
@@ -54,7 +52,6 @@ from sklearn.feature_selection import VarianceThreshold
 
 # plotting
 import umap
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
