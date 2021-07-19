@@ -54,7 +54,7 @@ def main(inpath, genes, outpath, lengths):
 
 
 def parse_featureCounts(files, genes):
-    """Read a file and the sample ID and save gene_ids and tmp_values, adapted from Steffen Lemke
+    """Read a file and the sample ID and save gene_ids and tmp_values
 
     :param files: list of files
     :param genes: dict mapping gene_ids to gene_names
@@ -100,11 +100,12 @@ def parse_featureCounts(files, genes):
 
 def write_lengths(geneLengths_all_files, outpath):
     """Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output
-        Comprises all non-overlapping bases in exons belonging to the same gene
 
     :param geneLengths_all_files:  gene_ids mapped to gene_lengths
     :param outpath: path where to store outfile, txt
     """
+
+    # Output comprises all non-overlapping bases in exons belonging to the same gene
     table = pd.DataFrame.from_dict(geneLengths_all_files, orient='index', columns=['GeneLength'])
     table.reset_index(level=0, inplace=True)
     table.rename({'index': 'GeneID'}, axis=1, inplace=True)
