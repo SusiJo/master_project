@@ -1,20 +1,21 @@
 """ This script can train different machine learning models performs grid search and evaluation of models
 
-    Bash script to run machine_learning_tool.py in ml_container
-
-    declare -a classifiers=("LinearSVC" "SVC" "RandomForest" "MultiLayerPerceptron" )
-
-    for val in ${classifiers[@]}; do \
-        echo Starting to train $val classifier \
-        python app/machine_learning_tool.py \
-        -i  <INPATH.TXT> \
-        -m <METADATA.CSV> \
-        -a $val \
-        -o <DEST-DIR>  \
-        -t <TITLE> \
-    done
-
 """
+
+
+# Bash wrapper script to run machine_learning_tool.py in ml_docker_container
+#
+#     declare -a classifiers=("LinearSVC" "SVC" "RandomForest" "MultiLayerPerceptron" )
+#
+#     for val in ${classifiers[@]}; do \
+#         echo Starting to train $val classifier \
+#         python app/machine_learning_tool.py \
+#         -i  <INPATH.TXT> \
+#         -m <METADATA.CSV> \
+#         -a $val \
+#         -o <DEST-DIR>  \
+#         -t <TITLE> \
+#     done
 
 # imports logging
 import click
@@ -132,10 +133,10 @@ def read_dataset(path, ensembl_filter, id2name):
     :param path: to input gene-expression table (GeneID, GeneName, Sample1, Sample2, ...)
     :param ensembl_filter: input list of ensembl_gene_ids
     :param names: input list of gene_names
-    :return: pd.Dataframe
-    :return: sample_names
-    :return: gene_ids = features
-    :return: gene_names = feature_names
+    :return: pandas.Dataframe
+    :return: sample_names, list
+    :return: gene_ids = features, list
+    :return: gene_names = feature_names, list
     """
 
     data = pd.read_csv(path, sep="\t")
@@ -167,10 +168,10 @@ def feature_reduction(X_train, X_test, featureNames):
     :param X_train: numpy.array of training data
     :param X_test: numpy.array of testing data
     :param featureNames: array with gene feature names
-    :return: filtered and scaled X_train
-    :return: filtered and scaled X_test
-    :return: filtered feature_names
-    :return: filtered gene_ids
+    :return: filtered and scaled X_train, numpy array
+    :return: filtered and scaled X_test, numpy array
+    :return: filtered feature_names, list
+    :return: filtered gene_ids, list
     """
 
     scaler = MinMaxScaler()
@@ -214,8 +215,7 @@ def max_features_arr(feature_names, max_f_arr):
 
 
 def search_space(model):
-    """
-    Function to define the search space for GridSearch or RandomGridSearch
+    """Function to define the search space for GridSearch or RandomGridSearch
 
     :param model: one of LinearSVC, SVC, RandomForest, MultiLayerPerceptron
     :return: search space
@@ -259,22 +259,22 @@ def search_space(model):
 
 def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, feature_names, splits, n_jobs, refitting,
                 outpath, dataset_title):
-    """
-    Function to perform grid search and print evaluation performance
-    :param model:
-    :param model_dict:
-    :param X_train:
-    :param y_train:
-    :param X_test:
-    :param y_test:
-    :param gene_ids:
-    :param feature_names:
-    :param splits:
-    :param n_jobs:
-    :param refitting:
-    :param outpath:
-    :param dataset_title:
-    :return:
+    """Function to perform grid search and print evaluation performance
+
+    :param model: LinearSVC, SVC, RandomForest, MultiLayerPerceptron
+    :param model_dict: dictionary which instantiates models
+    :param X_train: scaled training data, numpy array
+    :param y_train: list of target values
+    :param X_test:  scaled test data, numpy array
+    :param y_test:  list of target test values
+    :param gene_ids: list of gene ids
+    :param feature_names: list of features
+    :param splits: number of splits for cross-validation
+    :param n_jobs: number of cpu-cores to be used
+    :param refitting: default is True
+    :param outpath: for plots and tables
+    :param dataset_title: i.e. tissue_dataset
+    :return: None
     """
 
     # set display options
@@ -353,8 +353,8 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
 
 
 def print_mean_std_scores(scoring_dict):
-    """
-    Print cross_validation_results
+    """Print cross_validation_results
+
     :param scoring_dict: from grid_search, cross_val_score, cross_validate
     :return: None
     """
@@ -368,11 +368,10 @@ def print_mean_std_scores(scoring_dict):
 
 
 def plot_bar(df, outpath):
-    """
-    Plot 10 most important features
+    """Plot 10 most important features
 
     :param df: pandas Dataframe of feature importances
-    :return: None, saves output to disk
+    :return: None
     """
 
     colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
