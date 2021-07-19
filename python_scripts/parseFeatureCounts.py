@@ -58,9 +58,9 @@ def parse_featureCounts(files, genes):
 
     :param files: list of files
     :param genes: dict mapping gene_ids to gene_names
-    :return: counts_all_files
-    :return: gene_dict
-    :return: geneLengths_all_files : dict mapping ids to lengths
+    :return: counts_all_files list of lists
+    :return: gene_dict of unique genes
+    :return: geneLengths_all_files dict mapping ids to lengths
     """
     gene_dict = fh.read_unique_genes(genes)
 
@@ -116,4 +116,4 @@ def write_lengths(geneLengths_all_files, outpath):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
