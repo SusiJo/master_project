@@ -27,7 +27,6 @@ import pandas as pd
 import numpy as np
 import fileUtils.metadata_handling as mh
 
-
 # imports scikit-learn
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
@@ -45,15 +44,15 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 
-
 # feature selection
 from sklearn.feature_selection import VarianceThreshold
-
 
 # plotting
 import umap
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import colors as mcolors
 
 # Create logger
 logger = logging.getLogger('Machine Learning Tool')
@@ -79,7 +78,7 @@ logger.setLevel(logging.INFO)
               required=False, default=None)
 @click.option('-o', '--outpath', prompt='path for outputs',
               help='Path for output tables and plots. Extension is filled automatically.')
-@click.option('-c', '--cores', help='please enter number of cores to be used for grid search', default=2)
+@click.option('-c', '--cores', help='please enter number of cpu cores to be used for search', default=2)
 @click.option('-t', '--title', help='please enter a dataset title/tissue title')
 def main(inpath, metadata, algorithm, kegg, outpath, title, cores):
     start_time = time()
@@ -96,9 +95,12 @@ def main(inpath, metadata, algorithm, kegg, outpath, title, cores):
         kegg_ensembl = kegg_genes_pathways.iloc[:, 0].tolist()
         kegg_name = kegg_genes_pathways.iloc[:, 1].tolist()
         id2name_dict = dict(zip(kegg_ensembl, kegg_name))
-        expr_df, sample_names, gene_ids, feature_names = read_dataset(inpath, ensembl_filter=kegg_ensembl, id2name=id2name_dict)
+        expr_df, sample_names, gene_ids, feature_names = read_dataset(inpath, ensembl_filter=kegg_ensembl,
+                                                                      id2name=id2name_dict)
+    # No filtering for KEGG genes
     else:
-        expr_df, sample_names, gene_ids, feature_names = read_dataset(inpath, ensembl_filter=None, id2name=None)
+        expr_df, sample_names, gene_ids, feature_names = read_dataset(inpath, ensembl_filter=None,
+                                                                      id2name=None)
 
     logger.info('Parse metadata...')
     meta_dict, target_names, target, annotations = mh.read_metadata(metadata, sample_names)
@@ -106,8 +108,8 @@ def main(inpath, metadata, algorithm, kegg, outpath, title, cores):
     logger.info('Split training and testing data...')
     X_train, X_test, y_train, y_test = train_test_split(expr_df, target, stratify=target, test_size=0.2,
                                                         random_state=99)
-    logger.info('Applying low-variance filter and scaling...')
-    X_train_f, X_test_f, f_names_red = feature_reduction(X_train, X_test, feature_names)
+    logger.info('Feature scaling and filtering out 0-variance genes...')
+    X_train_f, X_test_f, f_names_red, gene_ids_red = feature_reduction(X_train, X_test, feature_names)
 
     # Define models
     # pass randomState Instance to RandomForest upon instantiation (following best practices sklearn)
@@ -117,8 +119,8 @@ def main(inpath, metadata, algorithm, kegg, outpath, title, cores):
 
     logger.info('Performing grid search...')
     grid_search(model=algorithm, model_dict=models, X_train=X_train_f, y_train=y_train, X_test=X_test_f, y_test=y_test,
-                gene_ids=gene_ids, feature_names=f_names_red, splits=5, n_jobs=cores, refitting=True, outpath=new_outpath,
-                dataset_title=title)
+                gene_ids=gene_ids_red, feature_names=f_names_red, splits=5, n_jobs=cores, refitting=True,
+                outpath=new_outpath, dataset_title=title)
 
     end_time = time()
     logger.info('Process finished in ' + str(round(end_time - start_time, 2)) + "sec")
@@ -145,12 +147,13 @@ def read_dataset(path, ensembl_filter, id2name):
     df.columns.name = None
     sample_names = df.index.tolist()
     gene_ids = df.columns.tolist()
-    df_final = df
+    df_final = df.fillna(0)
 
     if ensembl_filter is not None:
         to_select = df.columns[df.columns.isin(ensembl_filter)]
         filtered_df = df[to_select].copy()
-        df_final = filtered_df.copy()
+        copy = filtered_df.copy()
+        df_final = copy.fillna(0)
         gene_ids = df_final.columns.tolist()
         feature_names = [v for e in gene_ids for k, v in id2name.items() if e == k]
         # print(len(gene_ids), len(feature_names), len(df_final.columns))
@@ -167,10 +170,14 @@ def feature_reduction(X_train, X_test, featureNames):
     :return: filtered and scaled X_train
     :return: filtered and scaled X_test
     :return: filtered feature_names
+    :return: filtered gene_ids
     """
 
     scaler = MinMaxScaler()
     var_filter = VarianceThreshold(threshold=0)
+
+    # get gene_ids for reducing after variance threshold
+    gene_ids = np.array(X_train.columns.tolist())
 
     X_train_sc = scaler.fit_transform(X_train)
     X_test_sc = scaler.transform(X_test)
@@ -178,13 +185,11 @@ def feature_reduction(X_train, X_test, featureNames):
     X_train_filtered = var_filter.fit_transform(X_train_sc)
     X_test_filtered = var_filter.transform(X_test_sc)
 
-    # test if scaled --> Min = 0, Max = 1
-    print("Min ", np.min(X_train_filtered), " Max ", np.max(X_train_filtered))
-
     # get names of reduced feature_names
     mask = var_filter.get_support()
     feature_arr = np.array(featureNames)
     feature_names_reduced = feature_arr[mask].tolist()
+    gene_ids_red = gene_ids[mask].tolist()
 
     # print INFO
     print("{}: {}".format("Number of training instances ", X_train_filtered.shape[0]))
@@ -192,7 +197,7 @@ def feature_reduction(X_train, X_test, featureNames):
     print("{}: {}".format("Number of features after VarianceFilter ", len(feature_names_reduced)))
     print("{}: {}".format(len(featureNames) - len(feature_names_reduced), "features were removed "))
 
-    return X_train_filtered, X_test_filtered, feature_names_reduced
+    return X_train_filtered, X_test_filtered, feature_names_reduced, gene_ids_red
 
 
 def max_features_arr(feature_names, max_f_arr):
@@ -209,21 +214,28 @@ def max_features_arr(feature_names, max_f_arr):
 
 
 def search_space(model):
+    """
+    Function to define the search space for GridSearch or RandomGridSearch
+
+    :param model: one of LinearSVC, SVC, RandomForest, MultiLayerPerceptron
+    :return: search space
+    """
+
     space = {}
 
     if model == 'LinearSVC':
-        # combinations = 32 * 7 = 224
+        # combinations = 26 * 7 = 182
         space = {'C': [0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 1, 2, 4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44,
-                       48, 52, 56, 60, 64],             # np.linspace(0.00001, 64, num=16),
+                       48, 52, 56, 60, 64],
                  'max_iter': [1000, 2000, 5000, 10000, 20000, 50000, 100000]}
 
     if model == 'SVC':
-        # combinations = 16 * 6 * 3 * 4 = 1152
+        # combinations = 26 * 6 * 3 * 7 = 3276
         space = {'C': [0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 1, 2, 4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44,
-                       48, 52, 56, 60, 64],          # np.linspace(0.00001, 64, num=16),
+                       48, 52, 56, 60, 64],
                  'gamma': [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0],
                  'kernel': ['sigmoid', 'poly', 'rbf'],
-                 'max_iter': [1000, 5000, 10000, 20000]}
+                 'max_iter': [1000, 2000, 5000, 10000, 20000, 50000, 100000]}
     if model == 'RandomForest':
         # combinations = 9 * 2 * 32 * 3 * 3 * 2 = 10368
         space = {'n_estimators': [5, 10, 20, 50, 100, 200, 400, 600, 1000],
@@ -234,12 +246,12 @@ def search_space(model):
                  'bootstrap': [True, False]
                  }
     if model == 'MultiLayerPerceptron':
-        # combinations = 4 * 2 * 2 * 4 * 5 * 2 = 640
+        # combinations = 4 * 2 * 2 * 4 * 5 * 3 = 960
         space = {'hidden_layer_sizes': [(500, 100), (100, 50), (50, 20), (30, 10)],
                  'activation': ['tanh', 'relu'],
                  'solver': ['sgd', 'adam'],
                  'alpha': [0.0001, 0.001, 0.01, 0.1],
-                 'max_iter': [1000, 5000, 10000, 20000, 50000],
+                 'max_iter': [1000, 5000, 10000, 20000, 50000, 100000],
                  'learning_rate': ['constant', 'adaptive']}
 
     return space
@@ -260,7 +272,6 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
     :param splits:
     :param n_jobs:
     :param refitting:
-    :param rs:
     :param outpath:
     :param dataset_title:
     :return:
@@ -278,7 +289,7 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
     # Select grid
     grid = search_space(model)
 
-    print("Performing grid search for: ", clf)
+    print("Performing random search for: ", clf)
     t0 = time()
 
     # Define scoring metrics
@@ -286,11 +297,11 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
                'prec': 'precision'}
     Matthews = make_scorer(matthews_corrcoef, greater_is_better=True)
 
-    # Instantiate stratified-shuffled cross validation: shuffling important when class labels contiguously in data
-    cv = StratifiedKFold(n_splits=splits, shuffle=True, random_state=65)
+    # Instantiate stratified-shuffled 5x2 cross validation: shuffling important when class labels contiguously in data
+    cv = StratifiedKFold(n_splits=2, shuffle=True, random_state=65)
     # Define GridSearch
     search = RandomizedSearchCV(clf, grid, cv=cv, return_train_score=True, scoring=Matthews, n_jobs=n_jobs,
-                                refit=refitting)    # when refit = True, fitting once to get  best_model is sufficient
+                                refit=refitting)  # when refit = True, fitting once to get  best_model is sufficient
 
     # Performing non-nested grid search and hyper-parameter tuning
     search.fit(X_train, y_train)
@@ -306,20 +317,22 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
     # print(cv_results)
     print_mean_std_scores(cv_results)
 
-    # Nested outer CV with parameter optimization
-    nested_score = cross_val_score(best_model, X_train, y_train, cv=cv, scoring=Matthews)
-    print(model + ' outer cross validation MCC accuracy on training data: %.3f +/- %.3f' % (nested_score.mean(), nested_score.std()))
+    # Outer CV loop (5x2 cross validation) with different scores
+    nested_score = cross_validate(best_model, X_train, y_train, cv=splits, scoring=scoring)
+    print("Outer cross validation scores on train data: ")
+    print_mean_std_scores(nested_score)
 
     if model == 'RandomForest':
-        # Extract feature importances of forest
-        forest_feature_importances = best_model.feature_importances_
-        df_forest_feature_importances = pd.DataFrame(sorted(zip(forest_feature_importances, gene_ids, feature_names),
-                                                            reverse=True),
-                                                     columns=['Feature Importance', 'Gene ID', 'Gene Name'])
+        # Extract feature importance of forest
+        forest_feature_importance = best_model.feature_importances_
+        df_forest_feature_importance = pd.DataFrame(sorted(zip(forest_feature_importance, gene_ids, feature_names),
+                                                           reverse=True),
+                                                    columns=['Feature_Importance', 'GeneID', 'GeneName'])
+        plot_bar(df_forest_feature_importance, new_outpath)
 
-        print("20 most important features RandomForest\n", df_forest_feature_importances.head(n=20))
-        # Save feature_importances to file
-        df_forest_feature_importances.to_csv(new_outpath + '_feature_importances.csv', index=False)
+        print("20 most important features RandomForest \n", df_forest_feature_importance.head(n=20))
+        # Save feature_importance to file
+        df_forest_feature_importance.to_csv(new_outpath + '_feature_importance.csv', index=False)
 
     # Predict on test data
     y_pred = best_model.predict(X_test)
@@ -327,7 +340,7 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
     # Evaluate predictions
     print(model, ' : ')
     print(classification_report(y_test, y_pred, target_names=['normal', 'tumor']))
-    print(model + "MCC on test data %.3f" % (matthews_corrcoef(y_test, y_pred)))
+    print(model + " MCC on test data %.3f" % (matthews_corrcoef(y_test, y_pred)))
     print("Balanced Accuracy on test data %.3f" % (balanced_accuracy_score(y_test, y_pred)))
 
     # Evaluate model
@@ -352,6 +365,37 @@ def print_mean_std_scores(scoring_dict):
             continue
         else:
             print("%s: mean=%.3f, (+/- std=%.3f)" % (k, v.mean(), v.std()))
+
+
+def plot_bar(df, outpath):
+    """
+    Plot 10 most important features
+
+    :param df: pandas Dataframe of feature importances
+    :return: None, saves output to disk
+    """
+
+    colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
+
+    # set the style of the axes and the text color
+    plt.rcParams['axes.edgecolor'] = '#333F4B'
+    plt.rcParams['axes.linewidth'] = 0.8
+    plt.rcParams['xtick.color'] = '#333F4B'
+    plt.rcParams['ytick.color'] = '#333F4B'
+    plt.rcParams['text.color'] = '#333F4B'
+
+    names = df.iloc[:, 2].tolist()[:10]
+    percentages = df.iloc[:, 0].tolist()[:10]
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    plt.bar(names, percentages, width=0.5, color=colors['gray'], edgecolor=colors['black'])
+    plt.xticks(rotation=45, ha='right')
+    ax.set_ylabel('Feature Importance', fontsize=12)
+    ax.set_xlabel('Genes', fontsize=12)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.tight_layout()
+    plt.savefig(outpath + '_feature_importance_plot.png')
 
 
 if __name__ == "__main__":
