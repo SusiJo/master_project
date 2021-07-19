@@ -44,6 +44,7 @@ def main(xml, outpath):
 def parse_soup(xml_files, outpath):
     """
     Function to parse a folder with xml files from NCBI
+
     :param xml_files: path to folder
     :param outpath: path for metadata.csv sheet
     """
@@ -135,7 +136,7 @@ def parse_soup(xml_files, outpath):
                 if soup.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE.TAG.text == 'source_name':
                     source_name = soup.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE.VALUE.text
 
-                    # Extract all possible sample attribute tags
+                # Extract all possible sample attribute tags
                 sample_attributes = [(repr(sibling.TAG.text), repr(sibling.VALUE.text)) for sibling in
                                      soup.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE.next_siblings]
 
@@ -271,4 +272,4 @@ def parse_soup(xml_files, outpath):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
