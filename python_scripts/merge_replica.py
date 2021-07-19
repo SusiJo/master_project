@@ -53,9 +53,9 @@ def read_metadata(meta):
     Format:
     FileID, CaseID, Sample_Type, Project
 
-    :param meta:
-    :return: metadata as dataFrame
-    :return: dictionary mapping case_id to sample_ids
+    :param: meta: inpath to metadata table
+    :return: metadata: as dataFrame
+    :return: dictionary: mapping case_id to sample_ids
     """
 
     metadata = pd.read_csv(meta, sep=",")
