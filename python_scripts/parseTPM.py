@@ -47,12 +47,13 @@ def main(inpath, genes, outpath):
 
 
 def parse_stringTie(files, genes):
-    """Read a file and save gene_ids and tmp_values, adapted from Steffen Lemke
+    # Adapted script from Steffen Lemke
+    """Read a file and save gene_ids and tmp_values
 
     :param files: list of files
     :param genes: dict mapping gene_ids to gene_names
-    :return: tpm_all_files
-    :return: gene_dict
+    :return: tpm_all_files list of lists
+    :return: gene_dict of unique gene_ids to gene_names
     """
     gene_dict = fh.read_unique_genes(genes)
 
