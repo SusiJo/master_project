@@ -61,6 +61,7 @@ def parse_soup(xml_files, outpath):
         # library_strategy = ''
         # library_selection = ''
         bio_sample = ''
+        subject_id = ''
         sample_title = ''
         taxon_id = ''
         taxon_name = ''
@@ -72,7 +73,7 @@ def parse_soup(xml_files, outpath):
         histological_type = ''
         tissue_type = ''
         is_tumor = ''
-        # disease_state = ''  # disease status
+        disease_state = ''  # disease status
         subject_status = ''  # subject is affected
         hbv_infection = ''
         cirrhosis = ''  # primary tumor cirrhosis
@@ -142,6 +143,8 @@ def parse_soup(xml_files, outpath):
 
                 # Iterate over all sample attributes
                 for sibling in soup.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE.next_siblings:
+                    if sibling.TAG.text == 'gap_subject_id':
+                        subject_id = sibling.VALUE.text
                     if sibling.TAG.text == 'age' or sibling.TAG.text == 'DONOR_AGE' or \
                             sibling.TAG.text == 'patient age at resection':
                         age = str("'" + sibling.VALUE.text)
@@ -214,15 +217,14 @@ def parse_soup(xml_files, outpath):
             # save each Run accession and associated metadata
             if srr not in metadata.keys():
                 metadata[srr] = [experiment_title, study_ref, library_name, library_strategy, library_selection,
-                                 bio_sample, sample_title, taxon_id, taxon_name, age, gender, disease, body_site,
-                                 source_name, histological_type, tissue_type, is_tumor, subject_status, hbv_infection,
-                                 cirrhosis, tumor_stage, tumor_grade, cell_type, primary_tumor_cirrhosis, sample_type,
-                                 clinical_characteristics, phenotype, tumor_type, tumor_status,
-                                 cancer_type, diagnosis, health_state, label, description, rna_source
+                                 bio_sample, subject_id, sample_title, taxon_id, taxon_name, age, gender, disease,
+                                 disease_state, body_site, source_name, histological_type, tissue_type, is_tumor,
+                                 subject_status, hbv_infection, cirrhosis, tumor_stage, tumor_grade, cell_type,
+                                 primary_tumor_cirrhosis, sample_type, clinical_characteristics, phenotype, tumor_type,
+                                 tumor_status, cancer_type, diagnosis, health_state, label, description, rna_source
                                  ]
 
-                # disease state missing
-                # cause of resections missing
+                # include cause_of_resections
 
     normal = re.compile(r"([N|n]on-?\_?[T|t]umor)|([N|n]on-?\_?[C|c]ancer)|(normal)|([H|h]ealthy)|([C|c]ontr?ol)"
                         r"|(\_ant)|(adjacent)|([\_|-]N\d)|(\dN;?)|([N|n]or)|([C|c]trl)|((B|(MC))-?\d+[\_]RNA-Seq)",
@@ -249,12 +251,12 @@ def parse_soup(xml_files, outpath):
     # create dataframe from rich metadata
     df = pd.DataFrame.from_dict(metadata, orient='index',
                                 columns=['Experiment_title', 'Study_ref', 'Library_name', 'Library_strategy',
-                                         'Library_selection', 'BioSample', 'Sample_title', 'Taxon_id', 'Taxon_name',
-                                         'Age', 'Gender', 'Disease', 'Body_site', 'Source_name', 'Histological_Type',
-                                         'Tissue_type', 'Is_tumor', 'Subject_status', 'HBV-infection', 'Cirrhosis',
-                                         'Tumor_stage', 'Tumor_grade', 'Cell_type', 'Primary_tumor_cirrhosis',
-                                         'Sample_type', 'Clinical_characteristics', 'Phenotype', 'Tumor_type',
-                                         'Tumor_status', 'Cancer_type', 'Diagnosis', 'Health_state', 'Label',
+                                         'Library_selection', 'BioSample', 'Subject_id', 'Sample_title', 'Taxon_id',
+                                         'Taxon_name', 'Age', 'Gender', 'Disease', 'Disease_State', 'Body_site',
+                                         'Source_name', 'Histological_Type', 'Tissue_type', 'Is_tumor', 'Subject_status',
+                                         'HBV-infection', 'Cirrhosis', 'Tumor_stage', 'Tumor_grade', 'Cell_type',
+                                         'Primary_tumor_cirrhosis', 'Sample_type', 'Clinical_characteristics', 'Phenotype',
+                                         'Tumor_type', 'Tumor_status', 'Cancer_type', 'Diagnosis', 'Health_state', 'Label',
                                          'Description', 'Rna_source', 'Condition'
                                          ])
 
