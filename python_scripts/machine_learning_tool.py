@@ -157,7 +157,6 @@ def read_dataset(path, ensembl_filter, id2name):
         df_final = copy.fillna(0)
         gene_ids = df_final.columns.tolist()
         feature_names = [v for e in gene_ids for k, v in id2name.items() if e == k]
-        # print(len(gene_ids), len(feature_names), len(df_final.columns))
 
     return df_final, sample_names, gene_ids, feature_names
 
@@ -224,35 +223,33 @@ def search_space(model):
     space = {}
 
     if model == 'LinearSVC':
-        # combinations = 26 * 7 = 182
-        space = {'C': [0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 1, 2, 4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44,
-                       48, 52, 56, 60, 64],
-                 'max_iter': [1000, 2000, 5000, 10000, 20000, 50000, 100000]}
+        # combinations = 12 * 3 = 36
+        space = {'C': [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 20, 40, 60, 80, 100],
+                 'max_iter': [10000, 50000, 100000]}
 
     if model == 'SVC':
-        # combinations = 26 * 6 * 3 * 7 = 3276
-        space = {'C': [0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 1, 2, 4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44,
-                       48, 52, 56, 60, 64],
+        # combinations = 12 * 6 * 3 * 3 = 648
+        space = {'C': [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 20, 40, 60, 80, 100],
                  'gamma': [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0],
                  'kernel': ['sigmoid', 'poly', 'rbf'],
-                 'max_iter': [1000, 2000, 5000, 10000, 20000, 50000, 100000]}
+                 'max_iter': [10000, 50000, 100000]}
     if model == 'RandomForest':
-        # combinations = 9 * 2 * 32 * 3 * 3 * 2 = 10368
-        space = {'n_estimators': [5, 10, 20, 50, 100, 200, 400, 600, 1000],
+        # combinations = 6 * 2 * 32 * 2 * 4 * 2 = 6144
+        space = {'n_estimators': [10, 100, 200, 400, 600, 1000],
                  'max_features': ['auto', 'sqrt'],
                  'max_depth': np.linspace(1, 32, 32, endpoint=True),
-                 'min_samples_leaf': [3, 4, 5],
-                 'min_samples_split': [8, 10, 12],
-                 'bootstrap': [True, False]
-                 }
+                 'min_samples_leaf': [3, 5],
+                 'min_samples_split': [6, 8, 10, 12],
+                 'bootstrap': [True, False]}
     if model == 'MultiLayerPerceptron':
-        # combinations = 4 * 2 * 2 * 4 * 5 * 3 = 960
-        space = {'hidden_layer_sizes': [(500, 100), (100, 50), (50, 20), (30, 10)],
-                 'activation': ['tanh', 'relu'],
+        # combinations = 3 * 4 * 2 * 4 * 3 * 2 + 1 = 577
+        space = {'hidden_layer_sizes': [(1000, 500), (500, 200), (100, 50)],
+                 'activation': ['tanh', 'relu', 'identity', 'relu'],
                  'solver': ['sgd', 'adam'],
                  'alpha': [0.0001, 0.001, 0.01, 0.1],
-                 'max_iter': [1000, 5000, 10000, 20000, 50000, 100000],
-                 'learning_rate': ['constant', 'adaptive']}
+                 'max_iter': [10000, 50000, 100000],
+                 'learning_rate': ['constant', 'adaptive'],
+                 'early_stopping': [True]}
 
     return space
 
@@ -298,9 +295,10 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
     Matthews = make_scorer(matthews_corrcoef, greater_is_better=True)
 
     # Instantiate stratified-shuffled 5x2 cross validation: shuffling important when class labels contiguously in data
-    cv = StratifiedKFold(n_splits=2, shuffle=True, random_state=65)
+    inner_cv = StratifiedKFold(n_splits=2, shuffle=True, random_state=65)
+    outer_cv = StratifiedKFold(n_splits=splits, shuffle=True, random_state=65)
     # Define GridSearch
-    search = RandomizedSearchCV(clf, grid, cv=cv, return_train_score=True, scoring=Matthews, n_jobs=n_jobs,
+    search = GridSearchCV(clf, grid, cv=inner_cv, return_train_score=True, scoring=Matthews, n_jobs=n_jobs,
                                 refit=refitting)  # when refit = True, fitting once to get  best_model is sufficient
 
     # Performing non-nested grid search and hyper-parameter tuning
@@ -318,7 +316,7 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
     print_mean_std_scores(cv_results)
 
     # Outer CV loop (5x2 cross validation) with different scores
-    nested_score = cross_validate(best_model, X_train, y_train, cv=splits, scoring=scoring)
+    nested_score = cross_validate(best_model, X_train, y_train, cv=outer_cv, scoring=scoring)
     print("Outer cross validation scores on train data: ")
     print_mean_std_scores(nested_score)
 
@@ -348,7 +346,7 @@ def grid_search(model, model_dict, X_train, y_train, X_test, y_test, gene_ids, f
     fig.ax_.set_title('Confusion Matrix - ' + model)
     plt.savefig(new_outpath + '_confusion_matrix.png')
 
-    roc_fig = plot_roc_curve(best_model, X_test, y_test, name=model)
+    plot_roc_curve(best_model, X_test, y_test, name=model)
     plt.savefig(new_outpath + '_roc_auc.png')
 
 
