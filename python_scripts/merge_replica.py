@@ -1,8 +1,8 @@
 """ Script to merge stringTieFPKM TPM or featureCounts raw count values
-    outputs: - merged_replica_table
-             - merged_gene_table
-             - new_metadata with new ids
-             - new_metadata with batch information encoded as INT
+    outputs:    - merged_replica_table
+                - merged_gene_table
+                - new_metadata with new ids
+                - new_metadata with batch information encoded as INT
 """
 
 # imports
@@ -24,15 +24,15 @@ logger.setLevel(logging.INFO)
 
 
 @click.command()
-@click.option('-i', '--inpath', prompt='input path table with replica',
-              help='input path to merged TPM/featureCounts table with replica',
-              required=True)
+@click.option('-i', '--inpath', prompt='input path table with replica', 
+                help='input path to merged TPM/featureCounts table with replica',
+                required=True)
 @click.option('-m', '--metadata', prompt='path to metadata files',
-              help='Path to table in csv format',
-              required=True)
+                help='Path to table in csv format',
+                required=True)
 @click.option('-o', '--outpath', prompt='output table',
-              help='Output table with median merged replica (TXT). Extension filled automatically',
-              required=True)
+                help='Output table with median merged replica (TXT). Extension filled automatically',
+                required=True)
 def main(inpath, metadata, outpath):
     start_time = time.time()
 

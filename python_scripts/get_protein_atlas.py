@@ -23,13 +23,13 @@ logger.setLevel(logging.INFO)
 
 @click.command()
 @click.option('-i', '--inpath', prompt='path to feature_importance table (CSV)',
-              help='Path to feature_importance table',
-              required=True)
+                help='Path to feature_importance table',
+                required=True)
 @click.option('-c', '--cancer', help='Enter cancer type to be searched for without quotes',
-              type=click.Choice(['Pancreatic', 'Liver'], case_sensitive=True))
+                type=click.Choice(['Pancreatic', 'Liver'], case_sensitive=True))
 @click.option('-o', '--outpath', prompt='path to output table',
-              help='Path for annotated feature_importance table. Extension filled automatically (CSV)',
-              required=True)
+                help='Path for annotated feature_importance table. Extension filled automatically (CSV)',
+                required=True)
 @click.option('--latex', help='If set, prints tables to STDOUT in latex format', is_flag=True)
 def main(inpath, cancer, outpath, latex):
     start_time = time()
@@ -50,8 +50,8 @@ def main(inpath, cancer, outpath, latex):
 
         # create new dataframe
         df_top50 = pd.DataFrame({'Feature_Importance': feature_importance, 'GeneID': gene_ids,
-                                 'GeneName': gene_name, 'Prognostic_Type': prognostic_type,
-                                 'Is_prognostic': prognostics})
+                                    'GeneName': gene_name, 'Prognostic_Type': prognostic_type,
+                                    'Is_prognostic': prognostics})
 
         logger.info('Write output table...')
         df_top50.to_csv(outpath + "top_50.csv", index=False)
