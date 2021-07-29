@@ -7,7 +7,6 @@
 
 # imports
 import click
-import sys
 import logging
 import time
 import pandas as pd
@@ -78,9 +77,9 @@ def merge_replica(inpath, meta_table, outpath):
     """
     Function to merge replica with same BioSample = Case_ID and condition
 
-    :param inpath: path to TPM/featureCounts merged table
-    :param meta_table: metadata table, dataFrame
-    :param outpath: path where to store merged_file, csv
+    :param: inpath: path to TPM/featureCounts merged table
+    :param: meta_table: metadata table, dataFrame
+    :param: outpath: path where to store merged_file, csv
     :return: merged_replica_file.csv
     """
     pd.set_option("display.max_rows", 20, "display.max_columns", 10)
@@ -93,20 +92,16 @@ def merge_replica(inpath, meta_table, outpath):
     df = df.drop(['GeneName'], axis=1)
     # transpose df
     dft = df.T
-    sample_ids = dft.index[1:].tolist() # = sorter
-    # print("sorter\n ", sample_ids)
+    # = sorter
+    sample_ids = dft.index[1:].tolist()
     new_header = dft.iloc[0]
     dft = dft[1:]
     dft.columns = new_header
 
-    # print(dft.iloc[:10, :2])
-
-    # print("Meta before sorting\n", meta_table)
     # sort metadata according to sample_ids
     meta_table.FileID = meta_table.FileID.astype("category")
     meta_table.FileID.cat.set_categories(sample_ids, inplace=True)
     meta_table = meta_table.sort_values('FileID')
-    # print("Meta after sorting\n", meta_table)
 
     # attach info to merge replica on
     file_id = list(meta_table.iloc[:, 0])
