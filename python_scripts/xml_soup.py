@@ -1,3 +1,5 @@
+# Script to parse metadata from NCBI SRA for Liver tissue
+
 import os
 import click
 import logging
@@ -6,7 +8,6 @@ import fileUtils.file_handling as fh
 import pandas as pd
 import re
 import time
-import sys
 
 # Create logger
 logger = logging.getLogger('SRA metadata reader')
@@ -55,11 +56,7 @@ def parse_soup(xml_files, outpath):
 
     for i, file in enumerate(xml_files):
         # define &  clear all fields for metadata sheet
-        # experiment_title = ''
-        # study_ref = ''
         library_name = ''
-        # library_strategy = ''
-        # library_selection = ''
         bio_sample = ''
         subject_id = ''
         sample_title = ''
@@ -96,7 +93,7 @@ def parse_soup(xml_files, outpath):
         with open(file, 'r') as f:
             srr = os.path.basename(file).split(".")[0]
             soup = BeautifulSoup(f, "lxml-xml")
-            # print(srr)
+
             experiment_title = soup.EXPERIMENT.TITLE.text
 
             study_ref = soup.EXPERIMENT.STUDY_REF.IDENTIFIERS.PRIMARY_ID.text
@@ -107,14 +104,6 @@ def parse_soup(xml_files, outpath):
             library_strategy = soup.DESIGN.LIBRARY_DESCRIPTOR.LIBRARY_STRATEGY.text
 
             library_selection = soup.DESIGN.LIBRARY_DESCRIPTOR.LIBRARY_SELECTION.text
-
-            # if soup.PLATFORM.ILLUMINA.INSTRUMENT_MODEL is None:
-            #     if soup.PLATFORM.ABI_SOLID.INSTRUMENT_MODEL is not None:
-            #         instrument_model = soup.PLATFORM.ABI_SOLID.INSTRUMENT_MODEL.text
-
-            # if soup.PLATFORM.ILLUMINA.INSTRUMENT_MODEL is not None:
-            #     instrument_model = soup.PLATFORM.ILLUMINA.INSTRUMENT_MODEL.text
-            #     print("instrument model:\t ", soup.PLATFORM.ILLUMINA.INSTRUMENT_MODEL.text)
 
             if soup.STUDY.IDENTIFIERS.EXTERNAL_ID is not None:
                 bio_sample = soup.STUDY.IDENTIFIERS.EXTERNAL_ID.text
