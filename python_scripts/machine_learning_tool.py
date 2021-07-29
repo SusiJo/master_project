@@ -244,7 +244,7 @@ def search_space(model):
     if model == 'MultiLayerPerceptron':
         # combinations = 3 * 4 * 2 * 4 * 3 * 2 + 1 = 577
         space = {'hidden_layer_sizes': [(1000, 500), (500, 200), (100, 50)],
-                 'activation': ['tanh', 'relu', 'identity', 'relu'],
+                 'activation': ['tanh', 'relu', 'identity'],
                  'solver': ['sgd', 'adam'],
                  'alpha': [0.0001, 0.001, 0.01, 0.1],
                  'max_iter': [10000, 50000, 100000],
