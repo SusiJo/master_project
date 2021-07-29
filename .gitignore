@@ -12,3 +12,5 @@ R_notebooks.Rproj
 **/.idea/**
 **/__pycache__/**
 **/.ipynb_checkpoints/**
+**/KEGG/**
+**/plots/**
