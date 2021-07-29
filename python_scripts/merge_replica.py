@@ -1,9 +1,9 @@
-""" Script to merge stringTieFPKM TPM or featureCounts raw count values
-    outputs:    - merged_replica_table
-                - merged_gene_table
-                - new_metadata with new ids
-                - new_metadata with batch information encoded as INT
-"""
+# Script to merge stringTieFPKM TPM or featureCounts raw count values
+#    outputs:    - merged_replica_table
+#                - merged_gene_table
+#                - new_metadata with new ids
+#                - new_metadata with batch information encoded as INT
+
 
 # imports
 import click
