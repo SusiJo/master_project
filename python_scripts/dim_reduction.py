@@ -5,7 +5,6 @@
 
 # imports
 import os
-import sys
 import click
 import numpy as np
 import pandas as pd
@@ -455,4 +454,4 @@ def silhouette_plot(data, target):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
