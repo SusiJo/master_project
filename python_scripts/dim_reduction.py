@@ -1,12 +1,7 @@
-#!/usr/bin/python3
-
 # The purpose of this script is to
-# 1) Transform the merged data (stringTie, featureCounts) such
-#    that is can by used by ML: row = sample, col = gene (feature)
-# 2) Scale the data with MinMaxScaler from scikit-learn on genes = columns
-# 3) Create a dictionary like structure for storage target_names = label [tumor, control]
-# {data: array[], target: array[], target_names: array[], feature_names: array[]}
-
+# 1) Transform the merged data (stringTie, featureCounts) for dimensionality reduction
+# 2) Scale with MinMaxScaler
+# 3) Plot with PCA, tSNE, UMAP
 
 # imports
 import os
@@ -23,7 +18,7 @@ from sklearn import preprocessing
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-import umap  # umap-learn
+import umap  # = umap-learn
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
@@ -50,8 +45,6 @@ def main(inpath, merged_replica, metadata, outpath, pca, tsne, umap, comparison,
     if inpath:
         print("Reading data...")
         sample_ids, gene_ids, feature_names, data = read_tpm(inpath)
-        # print("sample ids", sample_ids)
-        # print("data", data)
 
         # convert data to numpy array for scaling and transpose to scale on genes
         # shape = (features, samples)
@@ -147,45 +140,33 @@ def read_metadata(metadata, sample_ids):
     for i, e in enumerate(sample_ids):
         if e not in target_names.keys():
             target_names[e] = meta_dict[e][1]
-    print("target names\n", target_names)
 
-    # target array of conditions encoded as 0,1
+    # encode conditions as target array of 0,1
     target = [0 if value == 'normal' else 1 for key, value in target_names.items()]
-    print("target\n", target)
 
     # Create Dataframe object for annotations for plots
     # sort the metadata dictionary according to order of sample_target_names
     sorted_meta = OrderedDict([(el, meta_dict[el]) for el in target_names])
-    print("sorted meta ", sorted_meta)
     tmp = {0 + i: [k, sorted_meta.get(k)] for i, k in enumerate(sorted_meta)}
-
     annos = pd.DataFrame.from_dict(tmp, orient='index')
-    # print("annos\n", annos)
+
     # expand list with metadata into own series
     tags = annos.iloc[:, 1].apply(pd.Series)
     tags.rename({0: 'CaseID', 1: 'Condition', 2: 'Project'}, axis=1, inplace=True)
-    # print("tags ", tags)
+
     # concat dataframes
     annotations = pd.concat([annos[:], tags[:]], axis=1)
     annotations.drop([1], axis=1, inplace=True)
     annotations.rename({0: 'ID'}, axis=1, inplace=True)
-    print("Annotations\n ", annotations)
 
+    # get projects as different arrays, dicts
     project_series = annotations.iloc[:, 3]
-    # print("project series\n", project_series)
-    # project_list = project_series.tolist()
-    # print("project_list\n", project_list)
     project_set = set(project_series)
-    # print(project_set)
     project_dict = {v: 0 + k for k, v in enumerate(project_set)}
-    # print(project_dict)
     project_arr = [project_dict[k] for k in project_series]
-    # print(project_arr)
-    c = ['b', 'g', 'r', 'p']
-    color_tups = list(zip(project_set, c))
-    # color_dict = {e[0]: e[1] for e in color_tups}
+
+    # define colors for projects
     pdict = {'GTEx-PRJNA75899': '#EF553B', 'TCGA-PAAD': '#AB63FA', 'PACA-AU': '#00CC96', 'PACA-CA': '#636EFA'}
-    # pdict = {'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
     # pdict = {'SRP030040': '#85660D', 'SRP058626': '#782AB6', 'SRP187978': '#565656', 'SRP050003': '#1C8356',
     #         'SRP029880': '#16FF32', 'SRP137150': '#F7E1A0', 'SRP102722': '#E2E2E2', 'SRP026600': '#1CBE4F',
     #         'SRP064138': '#C4451C', 'SRP068551': '#DEA0FD', 'SRP062885': '#FE00FA', 'SRP069212': '#325A9B',
@@ -194,18 +175,11 @@ def read_metadata(metadata, sample_ids):
     #         'SRP118972': '#FC1CBF', 'SRP039694': '#B00068', 'SRP174502': '#FBE426', 'SRP049592': '#FA0087',
     #         'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
 
-    # print('Color-dict\n', pdict) #color_dict
-    # color_list = [pdict[k] for k in project_list] #color_dict
     pcolor_list = project_series.map(pdict)
-    # print(annotations)
-    # print('color-list\n', pcolor_list)
 
-    # target condition colors
+    # target condition colors, blue for normal tissue, red for tumor
     cdict = {0: '#636EFA', 1: '#EF553B'}
     ccolor_list = [cdict[k] for k in target]
-    # print("cond_colors\n", ccolor_list)
-    # print(ccolor_list)
-    # print(pcolor_list)
 
     return meta_dict, target_names, target, annotations, project_arr, pcolor_list, ccolor_list
 
@@ -217,7 +191,6 @@ def scaling(data):
     :return: scaled_data
     """
     scaler = preprocessing.MinMaxScaler()
-    # scaler = preprocessing.StandardScaler()
     # scales in the range of -1 to 1
     scaled_data = scaler.fit_transform(data, (-1, 1))
     return scaled_data
@@ -233,6 +206,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     :param title_dataset: i.e. Pancreas ComBat corrected
     """
 
+    # project color codes
     colors = ['#85660D', '#782AB6', '#565656', '#1C8356', '#16FF32', '#F7E1A0', '#E2E2E2', '#1CBE4F', '#C4451C',
               '#DEA0FD', '#FE00FA', '#325A9B', '#FEAF16', '#F8A19F', '#90AD1C', '#F6222E', '#1CFFCE', '#2ED9FF',
               '#B10DA1', '#C075A6', '#FC1CBF', '#B00068', '#FBE426', '#FA0087', '#EF553B', '#636EFA', '#00CC96',
@@ -251,8 +225,8 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     if method == 'tsne':
         print("Performing tsne for plotting...")
         # Dimension reduction
-        # consider setting init='pca', perplexity (neighbors), learning_rate
-        tsne = TSNE(n_components=2, random_state=0) # perplexity=20
+        # optional: init='pca', perplexity (neighbors), learning_rate
+        tsne = TSNE(n_components=2, random_state=0)
         X_embedded = tsne.fit_transform(data)
         d1 = X_embedded[:, 0]
         d2 = X_embedded[:, 1]
@@ -261,12 +235,13 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
         print("Performing umap for plotting...")
         # Dimension reduction
         # ensure reproducibility of embedding by setting random state, n_neighbors, metric='mahalanobis'
-        reducer = umap.UMAP(random_state=42) # n_neighbors=30, min_dist=0
+        # optional n_neighbors=30, min_dist=0
+        reducer = umap.UMAP(random_state=42)
         embedding = reducer.fit_transform(data)
         d1 = embedding[:, 0]
         d2 = embedding[:, 1]
 
-    # Plotting
+    # Plotting by conditions C and projects P
     figC = px.scatter(x=d1, y=d2, color=target.Condition, hover_name=target.ID,
                       hover_data={'project': target.Project, 'case_id': target.CaseID},
                       template="simple_white", color_discrete_sequence=['#636EFA', '#EF553B'])  # px.colors.qualitative.Plotly
@@ -298,9 +273,9 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     # orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
     figC.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=20)))
     figP.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=20)))
-    figC.update_traces(marker={'size': 20})  # (marker=go.scatter.Marker(size=20))
+    figC.update_traces(marker={'size': 20})
     figC.show()
-    figP.update_traces(marker={'size': 20})  # (marker=go.scatter.Marker(size=20))
+    figP.update_traces(marker={'size': 20})
     figP.show()
     # export to html
     if not os.path.exists(outpath):
@@ -309,8 +284,8 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     figP.write_html(outpath + str(method) + '_' + title_dataset.lower() + "_project.html")
 
     # reduce marker sizes for pdf pictures
-    figC.update_traces(marker={'size': 10})  # (marker=go.scatter.Marker(size=5))
-    figP.update_traces(marker={'size': 10})  # (marker=go.scatter.Marker(size=5))
+    figC.update_traces(marker={'size': 10})
+    figP.update_traces(marker={'size': 10})
     figC.update_xaxes(linewidth=3, title_font_size=20, tickfont_size=20)
     figC.update_yaxes(linewidth=3, title_font_size=20, tickfont_size=20)
     figP.update_xaxes(linewidth=3, title_font_size=20, tickfont_size=20)
@@ -328,6 +303,7 @@ def comparison_dim_reduction(X, target, outpath):
     """
     # Create figure
     fig = plt.figure(figsize=(15, 5))
+    # uncomment to plot title
     # fig.suptitle("Dimensionality reduction with ", fontsize=14)
     n_components = 2
 
@@ -363,14 +339,23 @@ def comparison_dim_reduction(X, target, outpath):
         ax.yaxis.set_major_formatter(NullFormatter())
         ax.axis('tight')
 
-
-    # plt.show()
     if not os.path.exists(outpath):
         os.mkdir(outpath)
     plt.savefig(outpath + "comparison_plot.pdf", format='pdf')
 
 
 def plotly_comparison(data, pcolor_list, ccolor_list, annos, outpath, title_dataset):
+    """Plot all dimensionality reduction techniques into one plotly plot as HTML and PDF
+
+    :param data: numpy array
+    :param pcolor_list: list of project colors
+    :param ccolor_list: list of condition colors
+    :param annos: annotation dataframe: FileID, CaseID, SampleType, Project
+    :param outpath: for images
+    :param title_dataset: for output path
+    :return: None
+    """
+
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(data)
     d1 = X_pca[:, 0]
@@ -433,10 +418,6 @@ def silhouette_plot(data, target):
     # UMAP
     reducer = umap.UMAP(random_state=10)
     embedding = reducer.fit_transform(data)
-
-    # tSNE
-    # tsne = TSNE(n_components=2, random_state=0)
-    # embedding = tsne.fit_transform(data)
 
     for i, condition in enumerate(clusters):
         # Compute the silhouette score average
