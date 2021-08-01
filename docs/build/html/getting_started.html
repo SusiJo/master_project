@@ -40,7 +40,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Machine learning on RNA-Seq data" href="gallery.html" />
+    <link rel="next" title="Metadata acquisition" href="metadata.html" />
     <link rel="prev" title="Welcome to master_project’s documentation!" href="index.html" /> 
 </head>
 
@@ -90,23 +90,16 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-workflow-overview">Main Workflow Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#acquisition-of-rna-seq-data">Acquisition of RNA-Seq data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#tcga">TCGA</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#icgc">ICGC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#gtex-ncbi-sra">GTEX / NCBI SRA</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#obtain-rna-seq-expression-data">Obtain RNA-Seq expression data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#metadata">Metadata</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#setting-up-conda-environment">Setting-up conda environment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#parsing-tpm-values-from">Parsing TPM values from</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#parsing-featurecounts-from">Parsing FeatureCounts from</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dimension-reduction-clustering-analysis">Dimension Reduction/ Clustering analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#batch-correction">Batch Correction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alternative-set-up-with-docker-container">Alternative set up with docker container</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="gallery.html">Machine learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">python_scripts</a></li>
 </ul>
 
@@ -202,7 +195,7 @@
 <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>This chapter gives an introduction into the preprocessing steps of RNA-Seq expression data from different public repositories.
-It serves as guideline on how download data and metadata, setup a conda environment to use the scripts written in bash, nextflow, python and R.</p>
+It documents how to download data and metadata, setup a conda environment or Docker container to use the scripts written in bash, nextflow, python and R.</p>
 <div class="section" id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -213,131 +206,27 @@ It serves as guideline on how download data and metadata, setup a conda environm
 <li><p>Merge TPM values from nf-core/rnaseq/stringTieFPKM</p></li>
 <li><p>Merge raw featureCounts from nf-core/rnaseq/featureCounts</p></li>
 <li><p>Clustering analyses performing PCA, TSNE, UMAP</p></li>
-<li><p>Batch correction with ComBat, CombatSeq</p></li>
+<li><p>Batch correction with ComBat, CombatSeq, removeBatchEffect()</p></li>
+<li><p>Supvervised Classification Machine Learning: LinearSVM, SVM, RandomForest, MultiLayerPerceptron</p></li>
 </ul>
+</div>
+<div class="section" id="main-workflow-overview">
+<h2>Main Workflow Overview<a class="headerlink" href="#main-workflow-overview" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/workflow_scripts_final.png"><img alt="_images/workflow_scripts_final.png" src="_images/workflow_scripts_final.png" style="width: 700px;" /></a>
 </div>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>Checkout <a class="reference external" href="https://pipeline-docs.readthedocs.io/en/latest/index.html">qbic-docs</a></p>
 <p>Assure <a class="reference external" href="https://www.nextflow.io/docs/latest/getstarted.html">nextflow</a>, <a class="reference external" href="https://docs.docker.com/engine/install/centos/">docker</a>, <a class="reference external" href="https://sylabs.io/guides/3.0/user-guide/installation.html#before-you-begin">singularity</a>  are installed</p>
-</div>
-</div>
-<div class="section" id="acquisition-of-rna-seq-data">
-<h2>Acquisition of RNA-Seq data<a class="headerlink" href="#acquisition-of-rna-seq-data" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="tcga">
-<h3>TCGA<a class="headerlink" href="#tcga" title="Permalink to this headline">¶</a></h3>
-<p>Download <a class="reference external" href="https://gdc.cancer.gov/access-data/gdc-data-transfer-tool">GDC transfer tool</a> to <code class="docutils literal notranslate"><span class="pre">/usr/local/bin/</span></code> or another location in <code class="docutils literal notranslate"><span class="pre">$PATH</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget <span class="s1">&#39;https://gdc.cancer.gov/files/public/file/gdc-client_v1.6.0_Ubuntu_x64-py3.7_0.zip&#39;</span> -nv -O gdc-client_v1.6.0_Ubuntu_x64-py3.7_0.zip
-unzip gdc-client_v1.6.0_Ubuntu_x64-py3.7_0.zip
-</pre></div>
-</div>
-<p>Obtain a manifest for data download and an authentication token.
-Download data with the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gdc-client download -m &lt;manifest&gt; -t &lt;token&gt; -d &lt;outdir&gt;
-</pre></div>
-</div>
-</div>
-<div class="section" id="icgc">
-<h3>ICGC<a class="headerlink" href="#icgc" title="Permalink to this headline">¶</a></h3>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>ICGC currently allows download of data from the Collaboratory Repository withouth having specific cloud access.
-Other repositories need cloud access.</p>
-</div>
-<p>Download <a class="reference external" href="https://docs.icgc.org/download/guide/#installation-of-the-score-client">score-client</a> (requires OpenJDK11)</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget -O score-client.tar.gz https://artifacts.oicr.on.ca/artifactory/dcc-release/bio/overture/score-client/<span class="se">\[</span>RELEASE<span class="se">\]</span>/score-client-<span class="se">\[</span>RELEASE<span class="se">\]</span>-dist.tar.gz
-tar -xvzf score-client.tar.gz
-<span class="nb">cd</span> score-client-5.1.0  <span class="c1"># or newer version</span>
-bin/score-client
-</pre></div>
-</div>
-<p>Get access token and store under <code class="docutils literal notranslate"><span class="pre">score-client/conf/application.properties</span></code></p>
-<p>Download Data</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>score-client --profile collab download --manifest &lt;manifest.tsv&gt; --output-dir &lt;dir&gt;
-</pre></div>
-</div>
-</div>
-<div class="section" id="gtex-ncbi-sra">
-<h3>GTEX / NCBI SRA<a class="headerlink" href="#gtex-ncbi-sra" title="Permalink to this headline">¶</a></h3>
-<p>Download data from GTEX project via the Short Read Archive using the <a class="reference external" href="https://github.com/qbic-pipelines/sradownloader">qbic-pipelines/sradownloader</a>.
-The current version does not support automatic metadata download yet, but it will be a feature in the future.</p>
-</div>
-</div>
-<div class="section" id="obtain-rna-seq-expression-data">
-<h2>Obtain RNA-Seq expression data<a class="headerlink" href="#obtain-rna-seq-expression-data" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Run <a class="reference external" href="https://github.com/qbic-pipelines/bamtofastq">qbic-pipelines/bamtofastq</a>  <code class="docutils literal notranslate"><span class="pre">v.1.1.0</span></code></p></li>
-<li><p>Run <a class="reference external" href="https://nf-co.re/rnaseq/1.4.2/usage">nf-core/rnaseq</a>  <code class="docutils literal notranslate"><span class="pre">v.1.4.2</span></code></p></li>
-</ul>
-</div>
-<div class="section" id="metadata">
-<h2>Metadata<a class="headerlink" href="#metadata" title="Permalink to this headline">¶</a></h2>
-<p>Download <a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/scripts/tcga_metadata.sh">tcga metadata</a> from <strong>TCGA</strong> via API from <a class="reference external" href="https://docs.gdc.cancer.gov/API/Users_Guide/Appendix_A_Available_Fields/#case-fields">Case endpoint</a> <code class="docutils literal notranslate"><span class="pre">json</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash tcga_metadata.sh &lt;manifest&gt; &lt;json_files&gt;
-</pre></div>
-</div>
-<p>Download <a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/scripts/icgc_metadata.sh">icgc metadata</a> from <strong>ICGC</strong> via API from <a class="reference external" href="https://docs.icgc.org/portal/api-endpoints/#!/donors/find">file and donor endpoint</a> <code class="docutils literal notranslate"><span class="pre">json</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash icgc_metadata.sh &lt;manifest&gt; &lt;json_file_endpt&gt; &lt;json_donor_endpt&gt;
-</pre></div>
-</div>
-<p>Download <a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/scripts/metadata.nf">sra metadata</a> from <strong>NCBI SRA</strong> <code class="docutils literal notranslate"><span class="pre">csv,</span> <span class="pre">xml</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nextflow run metadata.nf --run_acc_list &lt;SRA.txt&gt; --outdir &lt;results&gt;
-</pre></div>
-</div>
-<p>Extract metadata from <strong>TCGA, ICGC, SRA into one table</strong> <code class="docutils literal notranslate"><span class="pre">csv</span></code></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Allows multiple paths as input</p>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>metadata_processing.py --icgc &lt;path_to_json&gt; --sra &lt;path_to_csv&gt; --tcga &lt;path_to_json&gt; -o &lt;all_metadata.csv&gt;
-</pre></div>
-</div>
-<table class="colwidths-given docutils align-default" id="id1">
-<caption><span class="caption-text">Structure of table output from metadata_processing.py</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Sample_ID</p></th>
-<th class="head"><p>Case_ID</p></th>
-<th class="head"><p>Condition</p></th>
-<th class="head"><p>Project_ID</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>SRR…</p></td>
-<td><p>SAMN…</p></td>
-<td><p>normal</p></td>
-<td><p>GTEX</p></td>
-</tr>
-<tr class="row-odd"><td><p>6cde….</p></td>
-<td><p>DO…</p></td>
-<td><p>tumor</p></td>
-<td><p>ICGC_PACA_AU</p></td>
-</tr>
-</tbody>
-</table>
-<p>Extract rich metadata from TCGA or ICGC containing additional information on primary diagnosis,
-tumor subtype, gender, vital status, age, survival time, tumor stage, Icd10</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tcga<span class="p">|</span>icgc_metadata_processing.py -i &lt;inpath&gt; -o &lt;outpath&gt;
-</pre></div>
-</div>
-<p>Extract rich metadata from NCBI SRA by merging xml and csv
-Option: merge all csv with flag –csv_only</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csv_metadata_processing.py -i &lt;inpath&gt; --csv_only/--no_csv_only -o &lt;outpath&gt;
-</pre></div>
 </div>
 </div>
 <div class="section" id="setting-up-conda-environment">
 <h2>Setting-up conda environment<a class="headerlink" href="#setting-up-conda-environment" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Requires <code class="docutils literal notranslate"><span class="pre">`conda</span></code></p></li>
+<li><p>Requires <code class="docutils literal notranslate"><span class="pre">conda</span></code></p></li>
 <li><p>Requires <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">version</span> <span class="pre">3.8.8</span></code></p></li>
+<li><p>Requires <code class="docutils literal notranslate"><span class="pre">python_scripts/environment.yml</span></code></p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f environment.yml
 </pre></div>
@@ -347,74 +236,28 @@ Option: merge all csv with flag –csv_only</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="parsing-tpm-values-from">
-<h2>Parsing TPM values from<a class="headerlink" href="#parsing-tpm-values-from" title="Permalink to this headline">¶</a></h2>
-<p>The script merges TPM values from <code class="docutils literal notranslate"><span class="pre">rnaseq/stringTieFPKM/</span></code> and maps them to Ensembl gene_ids and Ensembl gene_names.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>parseTPM.py
--i/--inpath:  Path to stringtie folder
--g/--genes:   Path to extracted genes from rnaseq file
--o/--outpath: Path to output file - tsv table containing merged TPM values
-
-python parseTPM.py -i &lt;path_to/stringTieFPKM/&gt; -g &lt;path_to/genes_id2name&gt; -o &lt;path_to/mergedTPM&gt;
-</pre></div>
-</div>
-</div>
-<div class="section" id="parsing-featurecounts-from">
-<h2>Parsing FeatureCounts from<a class="headerlink" href="#parsing-featurecounts-from" title="Permalink to this headline">¶</a></h2>
-<p>Depending on whether the pipeline has run through without issues it is possible to
-directly take the <code class="docutils literal notranslate"><span class="pre">rnaseq/featureCounts/merged_gene_counts.txt</span></code>.</p>
-<p>If the pipeline had errors and stopped, it might be necessary to merge the raw counts
-separately from <code class="docutils literal notranslate"><span class="pre">rnaseq/featureCounts/gene_counts/</span></code>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>parseFeatureCounts.py
--i/--inpath:             Path to featureCounts/gene_counts/
--g/--genes:              Path to extracted genes from rnaseq file
---lengths/--no-lengths:  Extract featureLengths <span class="o">(</span>into csv<span class="o">)</span> <span class="k">for</span> raw count to TPM conversion <span class="o">(</span><span class="k">do</span> this only once<span class="o">)</span>
--o/--outpath:            Path to output file - tsv table containing merged raw counts
-
-python parseFeatureCounts.py -i &lt;path_to/gene_counts/&gt; --no-lengths -g &lt;path_to/genes_id2name&gt; -o &lt;path_to/mergedFeatureCounts&gt;
-</pre></div>
-</div>
-</div>
-<div class="section" id="dimension-reduction-clustering-analysis">
-<h2>Dimension Reduction/ Clustering analysis<a class="headerlink" href="#dimension-reduction-clustering-analysis" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">mergedTPM.txt</span></code> has 63,675 unique genes and is highly dimensional.
-In order to get a feeling for the structure of the data, it is helpful to
-reduce the number of dimensions to a lower dimensional embedding.</p>
-</div>
-<p><code class="xref py py-func docutils literal notranslate"><span class="pre">clustering.py()</span></code></p>
+<div class="section" id="alternative-set-up-with-docker-container">
+<h2>Alternative set up with docker container<a class="headerlink" href="#alternative-set-up-with-docker-container" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>scales the data on the gene features with sklearn.preprocessing.MinMaxScaler() to preserve the variances</p></li>
-<li><p>can perform unsupervised linear reduction via Principal Component Analysis - PCA</p></li>
-<li><p>can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - TSNE</p></li>
-<li><p>can perform non-linear stochastic reduction with Uniform Manifold Approximation Projection - UMAP</p></li>
-<li><p>outputs interactive html plots displaying metadata on hover (produced with plotly) and png images</p></li>
-<li><p>can plot a comparative clustering plot in one png image</p></li>
-<li><p>can perform silhouette plot analysis to get a good estimate of number of clusters (k-means clustering)</p></li>
+<li><p>Requires <code class="docutils literal notranslate"><span class="pre">python_scripts/Dockerfile</span></code></p></li>
+<li><p>Requires <code class="docutils literal notranslate"><span class="pre">python_scripts/environment.yml</span></code></p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>clustering.py
--i/--inpath:      Path to mergedTPM table
--m/--metadata:    Path to file with metadata <span class="k">for</span> hover_info <span class="k">in</span> plotly plots: <span class="o">[</span>ID, Case_ID, Condition, Project<span class="o">]</span>
--o/--outpath:     Path to images folder
---pca/--no-pca:   Conditional flag to perform PCA
---tsne/--no-tsne: Conditional flag to perform TSNE
---umap/--no-umap: Conditional flag to perform UMAP
---comparison/--no-comparison: Conditional flag to plot PCA, TSNE, UMAP <span class="k">in</span> one plot
---silhouette/--no-silhouette: Conditional flag to perform silhouette analysis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># folder structure</span>
 
-python clustering.py -i &lt;mergedTPM&gt; -m &lt;metadata&gt; -o &lt;images/&gt; --pca --tsne --umap --no-comparison --no-silhouette
+├── app/
+│   ├── tools.py
+├── data/
+│     ├── ...
+├── Dockerfile
+├── environment.yml
+└── results/
+
+<span class="c1"># from within folder containing scripts, Dockerfile and environment.yml</span>
+docker build -t &lt;name&gt; .
+
+docker run -it --rm -w &lt;work_dir&gt; -v &lt;host_dir&gt;:&lt;container_dir&gt; &lt;container_name&gt;
 </pre></div>
 </div>
-</div>
-<div class="section" id="batch-correction">
-<h2>Batch Correction<a class="headerlink" href="#batch-correction" title="Permalink to this headline">¶</a></h2>
-<p>Adjust for known batch effects arising from technical variation.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Currently only tested and implemented in R using svaseq package <code class="docutils literal notranslate"><span class="pre">ComBat</span></code> and <code class="docutils literal notranslate"><span class="pre">ComBatSeq</span></code></p>
-</div>
-<p><a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/R_notebooks/Batch_correction.Rmd">Batch_correction.Rmd</a></p>
 </div>
 </div>
 
@@ -424,7 +267,7 @@ python clustering.py -i &lt;mergedTPM&gt; -m &lt;metadata&gt; -o &lt;images/&gt;
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="gallery.html" class="btn btn-neutral float-right" title="Machine learning on RNA-Seq data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="metadata.html" class="btn btn-neutral float-right" title="Metadata acquisition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to master_project’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

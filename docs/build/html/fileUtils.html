@@ -40,7 +40,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="icgc_metadata_processing module" href="icgc_metadata_processing.html" />
+    <link rel="next" title="get_protein_atlas module" href="get_protein_atlas.html" />
     <link rel="prev" title="extract_gene_ids2name module" href="extract_gene_ids2name.html" /> 
 </head>
 
@@ -89,21 +89,30 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gallery.html">Machine learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">python_scripts</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="clustering.html">clustering module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extract_gene_ids2name.html">extract_gene_ids2name module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">fileUtils package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-fileUtils.file_handling">fileUtils.file_handling module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-fileUtils.metadata_handling">fileUtils.metadata_handling module</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="get_protein_atlas.html">get_protein_atlas module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="icgc_metadata_processing.html">icgc_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machine_learning_tool.html">machine_learning_tool module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metadata_processing.html">metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_replica.html">merge_replica module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_gene_counts.html">merge_gene_counts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parseFeatureCounts.html">parseFeatureCounts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parseTPM.html">parseTPM module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sra_metadata_processing.html">sra_metadata_processing module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tcga_metadata_processing.html">tcga_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xml_soup.html">xml_soup module</a></li>
 </ul>
 </li>
 </ul>
@@ -311,6 +320,36 @@
 </dd></dl>
 
 </div>
+<div class="section" id="module-fileUtils.metadata_handling">
+<span id="fileutils-metadata-handling-module"></span><h2>fileUtils.metadata_handling module<a class="headerlink" href="#module-fileUtils.metadata_handling" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="fileUtils.metadata_handling.read_metadata">
+<code class="sig-prename descclassname"><span class="pre">fileUtils.metadata_handling.</span></code><code class="sig-name descname"><span class="pre">read_metadata</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fileUtils/metadata_handling.html#read_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fileUtils.metadata_handling.read_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in metadata file csv format
+FileID, SampleType, CaseID, Project</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>meta_dict</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>target_names: dict</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>target: array</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>annotation: pd.DataFrame</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>project_arr</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>color_list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -319,7 +358,7 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="icgc_metadata_processing.html" class="btn btn-neutral float-right" title="icgc_metadata_processing module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="get_protein_atlas.html" class="btn btn-neutral float-right" title="get_protein_atlas module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="extract_gene_ids2name.html" class="btn btn-neutral float-left" title="extract_gene_ids2name module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

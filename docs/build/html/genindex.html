@@ -87,7 +87,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gallery.html">Machine learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">python_scripts</a></li>
 </ul>
 
@@ -171,6 +174,7 @@
  | <a href="#T"><strong>T</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
+ | <a href="#X"><strong>X</strong></a>
  
 </div>
 <h2 id="C">C</h2>
@@ -208,6 +212,8 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="machine_learning_tool.html#machine_learning_tool.feature_reduction">feature_reduction() (in module machine_learning_tool)</a>
+</li>
       <li>
     fileUtils.file_handling
 
@@ -216,16 +222,36 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    fileUtils.metadata_handling
+
+      <ul>
+        <li><a href="fileUtils.html#module-fileUtils.metadata_handling">module</a>
+</li>
+      </ul></li>
+  </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="get_protein_atlas.html#get_protein_atlas.get_attribute">get_attribute() (in module get_protein_atlas)</a>
+</li>
       <li><a href="fileUtils.html#fileUtils.file_handling.get_files">get_files() (in module fileUtils.file_handling)</a>
+</li>
+      <li><a href="fileUtils.html#fileUtils.file_handling.get_files_and_sample_ids">get_files_and_sample_ids() (in module fileUtils.file_handling)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="fileUtils.html#fileUtils.file_handling.get_files_and_sample_ids">get_files_and_sample_ids() (in module fileUtils.file_handling)</a>
+      <li>
+    get_protein_atlas
+
+      <ul>
+        <li><a href="get_protein_atlas.html#module-get_protein_atlas">module</a>
+</li>
+      </ul></li>
+      <li><a href="machine_learning_tool.html#machine_learning_tool.grid_search">grid_search() (in module machine_learning_tool)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -255,6 +281,33 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li>
+    machine_learning_tool
+
+      <ul>
+        <li><a href="machine_learning_tool.html#module-machine_learning_tool">module</a>
+</li>
+      </ul></li>
+      <li><a href="machine_learning_tool.html#machine_learning_tool.max_features_arr">max_features_arr() (in module machine_learning_tool)</a>
+</li>
+      <li><a href="merge_gene_counts.html#merge_gene_counts.merge_frames">merge_frames() (in module merge_gene_counts)</a>
+</li>
+      <li>
+    merge_gene_counts
+
+      <ul>
+        <li><a href="merge_gene_counts.html#module-merge_gene_counts">module</a>
+</li>
+      </ul></li>
+      <li>
+    merge_replica
+
+      <ul>
+        <li><a href="merge_replica.html#module-merge_replica">module</a>
+</li>
+      </ul></li>
+      <li><a href="merge_replica.html#merge_replica.merge_replica">merge_replica() (in module merge_replica)</a>
+</li>
+      <li>
     metadata_processing
 
       <ul>
@@ -271,7 +324,17 @@
 </li>
         <li><a href="fileUtils.html#module-fileUtils.file_handling">fileUtils.file_handling</a>
 </li>
+        <li><a href="fileUtils.html#module-fileUtils.metadata_handling">fileUtils.metadata_handling</a>
+</li>
+        <li><a href="get_protein_atlas.html#module-get_protein_atlas">get_protein_atlas</a>
+</li>
         <li><a href="icgc_metadata_processing.html#module-icgc_metadata_processing">icgc_metadata_processing</a>
+</li>
+        <li><a href="machine_learning_tool.html#module-machine_learning_tool">machine_learning_tool</a>
+</li>
+        <li><a href="merge_gene_counts.html#module-merge_gene_counts">merge_gene_counts</a>
+</li>
+        <li><a href="merge_replica.html#module-merge_replica">merge_replica</a>
 </li>
         <li><a href="metadata_processing.html#module-metadata_processing">metadata_processing</a>
 </li>
@@ -282,6 +345,8 @@
         <li><a href="sra_metadata_processing.html#module-sra_metadata_processing">sra_metadata_processing</a>
 </li>
         <li><a href="tcga_metadata_processing.html#module-tcga_metadata_processing">tcga_metadata_processing</a>
+</li>
+        <li><a href="xml_soup.html#module-xml_soup">xml_soup</a>
 </li>
       </ul></li>
   </ul></td>
@@ -304,16 +369,18 @@
         <li><a href="metadata_processing.html#metadata_processing.parse_icgc_json_files">(in module metadata_processing)</a>
 </li>
       </ul></li>
+      <li><a href="xml_soup.html#xml_soup.parse_soup">parse_soup() (in module xml_soup)</a>
+</li>
       <li><a href="parseTPM.html#parseTPM.parse_stringTie">parse_stringTie() (in module parseTPM)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="metadata_processing.html#metadata_processing.parse_tcga_json_files">parse_tcga_json_files() (in module metadata_processing)</a>
 
       <ul>
         <li><a href="tcga_metadata_processing.html#tcga_metadata_processing.parse_tcga_json_files">(in module tcga_metadata_processing)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="sra_metadata_processing.html#sra_metadata_processing.parse_xml">parse_xml() (in module sra_metadata_processing)</a>
 </li>
       <li>
@@ -330,14 +397,28 @@
         <li><a href="parseTPM.html#module-parseTPM">module</a>
 </li>
       </ul></li>
+      <li><a href="machine_learning_tool.html#machine_learning_tool.plot_bar">plot_bar() (in module machine_learning_tool)</a>
+</li>
+      <li><a href="clustering.html#clustering.plotly_comparison">plotly_comparison() (in module clustering)</a>
+</li>
+      <li><a href="machine_learning_tool.html#machine_learning_tool.print_mean_std_scores">print_mean_std_scores() (in module machine_learning_tool)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="clustering.html#clustering.read_metadata">read_metadata() (in module clustering)</a>
+      <li><a href="machine_learning_tool.html#machine_learning_tool.read_dataset">read_dataset() (in module machine_learning_tool)</a>
 </li>
+      <li><a href="clustering.html#clustering.read_metadata">read_metadata() (in module clustering)</a>
+
+      <ul>
+        <li><a href="fileUtils.html#fileUtils.metadata_handling.read_metadata">(in module fileUtils.metadata_handling)</a>
+</li>
+        <li><a href="merge_replica.html#merge_replica.read_metadata">(in module merge_replica)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fileUtils.html#fileUtils.file_handling.read_tpm">read_tpm() (in module fileUtils.file_handling)</a>
@@ -352,10 +433,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="clustering.html#clustering.scaling">scaling() (in module clustering)</a>
 </li>
-      <li><a href="clustering.html#clustering.silhouette_plot">silhouette_plot() (in module clustering)</a>
+      <li><a href="machine_learning_tool.html#machine_learning_tool.search_space">search_space() (in module machine_learning_tool)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="clustering.html#clustering.silhouette_plot">silhouette_plot() (in module clustering)</a>
+</li>
       <li>
     sra_metadata_processing
 
@@ -404,6 +487,19 @@
 </li>
       <li><a href="sra_metadata_processing.html#sra_metadata_processing.write_xml_table">write_xml_table() (in module sra_metadata_processing)</a>
 </li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    xml_soup
+
+      <ul>
+        <li><a href="xml_soup.html#module-xml_soup">module</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 

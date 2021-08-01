@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>merge_replica &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">python_scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>merge_replica</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for merge_replica</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Script to merge stringTieFPKM TPM or featureCounts raw count values</span>
+<span class="c1">#    outputs:    - merged_replica_table</span>
+<span class="c1">#                - merged_gene_table</span>
+<span class="c1">#                - new_metadata with new ids</span>
+<span class="c1">#                - new_metadata with batch information encoded as INT</span>
+
+
+<span class="c1"># imports</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="c1"># Create logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Replica merger&#39;</span><span class="p">)</span>
+<span class="c1"># Create console handler</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="c1"># Create formatter</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="c1"># add ch to logger</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--inpath&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;input path table with replica&#39;</span><span class="p">,</span> 
+                <span class="n">help</span><span class="o">=</span><span class="s1">&#39;input path to merged TPM/featureCounts table with replica&#39;</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--metadata&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path to metadata files&#39;</span><span class="p">,</span>
+                <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to table in csv format&#39;</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--outpath&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;output table&#39;</span><span class="p">,</span>
+                <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output table with median merged replica (TXT). Extension filled automatically&#39;</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading metadata...&#39;</span><span class="p">)</span>
+    <span class="n">meta_table</span><span class="p">,</span> <span class="n">meta_dict</span> <span class="o">=</span> <span class="n">read_metadata</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing output to table...&#39;</span><span class="p">)</span>
+    <span class="n">merge_replica</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">meta_table</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process finished in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;sec&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="read_metadata"><a class="viewcode-back" href="../merge_replica.html#merge_replica.read_metadata">[docs]</a><span class="k">def</span> <span class="nf">read_metadata</span><span class="p">(</span><span class="n">meta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to read metadata table and connect case_id to file_id</span>
+<span class="sd">    Format:</span>
+<span class="sd">    FileID, CaseID, Sample_Type, Project</span>
+
+<span class="sd">    :param: meta: inpath to metadata table</span>
+<span class="sd">    :return: metadata: as dataFrame</span>
+<span class="sd">    :return: dictionary: mapping case_id to sample_ids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="n">file_id</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">case_id</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">id_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="n">case_id</span><span class="p">))</span>
+
+    <span class="c1"># dict mapping {BioSample: (SRR1, SRR2), ...}</span>
+    <span class="n">new_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">id_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">new_dict</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_dict</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">new_dict</span></div>
+
+
+<div class="viewcode-block" id="merge_replica"><a class="viewcode-back" href="../merge_replica.html#merge_replica.merge_replica">[docs]</a><span class="k">def</span> <span class="nf">merge_replica</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">meta_table</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to merge replica with same BioSample = Case_ID and condition</span>
+
+<span class="sd">    :param: inpath: path to TPM/featureCounts merged table</span>
+<span class="sd">    :param: meta_table: metadata table, dataFrame</span>
+<span class="sd">    :param: outpath: path where to store merged_file, csv</span>
+<span class="sd">    :return: merged_replica_file.csv</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;display.max_columns&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># read tpm values</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">gene_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="c1"># print(gene_name)</span>
+    <span class="c1"># gene_ids = df.index</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;GeneName&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># transpose df</span>
+    <span class="n">dft</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span>
+    <span class="c1"># = sorter</span>
+    <span class="n">sample_ids</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">new_header</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dft</span> <span class="o">=</span> <span class="n">dft</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">dft</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">new_header</span>
+
+    <span class="c1"># sort metadata according to sample_ids</span>
+    <span class="n">meta_table</span><span class="o">.</span><span class="n">FileID</span> <span class="o">=</span> <span class="n">meta_table</span><span class="o">.</span><span class="n">FileID</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+    <span class="n">meta_table</span><span class="o">.</span><span class="n">FileID</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">set_categories</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">meta_table</span> <span class="o">=</span> <span class="n">meta_table</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;FileID&#39;</span><span class="p">)</span>
+
+    <span class="c1"># attach info to merge replica on</span>
+    <span class="n">file_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta_table</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">case_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta_table</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">sample_type</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta_table</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta_table</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="n">p_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">case_id</span><span class="p">,</span> <span class="n">project</span><span class="p">))</span>
+
+    <span class="n">mapping</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="n">case_id</span><span class="p">))</span>
+
+    <span class="n">dft</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CaseID&#39;</span><span class="p">,</span> <span class="n">case_id</span><span class="p">)</span>
+    <span class="n">dft</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;SampleType&#39;</span><span class="p">,</span> <span class="n">sample_type</span><span class="p">)</span>
+
+    <span class="n">dft</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dft</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">rename_axis</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>     <span class="c1"># remove index name</span>
+    <span class="n">dft</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;FileID&#39;</span><span class="p">,</span> <span class="n">file_id</span><span class="p">)</span>
+
+    <span class="c1"># make Multi-Index for merging replica based on case_id and sample_type</span>
+    <span class="n">dft</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;FileID&#39;</span><span class="p">,</span> <span class="s1">&#39;CaseID&#39;</span><span class="p">,</span> <span class="s1">&#39;SampleType&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># convert object type numbers to numeric</span>
+    <span class="n">dft</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">)</span>
+
+    <span class="c1"># merge replica based sample_id and condition</span>
+    <span class="n">df_final</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;CaseID&#39;</span><span class="p">,</span> <span class="s1">&#39;SampleType&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">median</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="c1"># attach condition info as numbers</span>
+    <span class="n">condition_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;normal&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;tumor&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Condition&#39;</span><span class="p">,</span> <span class="n">df_final</span><span class="p">[</span><span class="s1">&#39;SampleType&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">condition_dict</span><span class="p">))</span>
+    <span class="c1"># attach project info</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;Project&#39;</span><span class="p">,</span> <span class="n">df_final</span><span class="p">[</span><span class="s1">&#39;CaseID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">p_dict</span><span class="p">))</span>
+
+    <span class="c1"># make new unique ids</span>
+    <span class="n">unique_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_final</span><span class="p">))]</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;UniqueID&#39;</span><span class="p">,</span> <span class="n">unique_ids</span><span class="p">)</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">outpath_suffix</span> <span class="o">=</span> <span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath_suffix</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># make dataframe look like before for clustering + batch correction</span>
+    <span class="n">df_new</span> <span class="o">=</span> <span class="n">df_final</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;CaseID&#39;</span><span class="p">,</span> <span class="s1">&#39;SampleType&#39;</span><span class="p">,</span> <span class="s1">&#39;Condition&#39;</span><span class="p">,</span> <span class="s1">&#39;Project&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">dft_new</span> <span class="o">=</span> <span class="n">df_new</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">dft_new</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;UniqueID&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dft_new</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">set_names</span><span class="p">(</span><span class="s1">&#39;GeneID&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dft_new</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">unique_ids</span>
+    <span class="n">dft_new</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;GeneName&#39;</span><span class="p">,</span> <span class="n">gene_name</span><span class="p">)</span>
+
+    <span class="n">dft_new</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath</span><span class="o">+</span><span class="s2">&quot;_gene_table.txt&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># create new metadata table with new ids</span>
+    <span class="n">new_case_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_final</span><span class="o">.</span><span class="n">CaseID</span><span class="p">)</span>
+    <span class="n">new_sample_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_final</span><span class="o">.</span><span class="n">SampleType</span><span class="p">)</span>
+    <span class="n">new_project</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_final</span><span class="o">.</span><span class="n">Project</span><span class="p">)</span>
+
+    <span class="n">metadata_new</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;FileID&#39;</span><span class="p">:</span> <span class="n">unique_ids</span><span class="p">,</span> <span class="s1">&#39;CaseID&#39;</span><span class="p">:</span> <span class="n">new_case_ids</span><span class="p">,</span>
+                                 <span class="s1">&#39;SampleType&#39;</span><span class="p">:</span> <span class="n">new_sample_types</span><span class="p">,</span> <span class="s1">&#39;Project&#39;</span><span class="p">:</span> <span class="n">new_project</span><span class="p">})</span>
+
+    <span class="n">metadata_new</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s2">&quot;_metadata_new.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># annotate metadata with Batches</span>
+    <span class="n">project_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">metadata_new</span><span class="o">.</span><span class="n">Project</span><span class="p">)</span>
+    <span class="n">projects_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">metadata_new</span><span class="o">.</span><span class="n">Project</span><span class="p">)</span>
+    <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">projects_set</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">project_batch_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">projects_set</span><span class="p">,</span> <span class="n">batches</span><span class="p">))</span>
+    <span class="n">metadata_new</span><span class="p">[</span><span class="s1">&#39;Batch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">project_series</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">project_batch_dict</span><span class="p">)</span>
+    <span class="n">metadata_new</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s2">&quot;_metadata_new_batches.csv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># print info</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;number of samples gene_count_table &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dft_new</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">2</span><span class="p">:]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;number of samples in metadata table &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_new</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No. Normal samples: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_new</span><span class="p">[</span><span class="n">metadata_new</span><span class="o">.</span><span class="n">SampleType</span> <span class="o">==</span> <span class="s1">&#39;normal&#39;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No. Tumor samples: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_new</span><span class="p">[</span><span class="n">metadata_new</span><span class="o">.</span><span class="n">SampleType</span> <span class="o">==</span> <span class="s1">&#39;tumor&#39;</span><span class="p">]))</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

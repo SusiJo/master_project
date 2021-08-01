@@ -39,7 +39,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="python_scripts" href="modules.html" />
+    <link rel="prev" title="Preprocessing" href="preprocessing_analysis.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,9 +87,16 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gallery.html">Machine learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Machine-Learning on RNA-Seq data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#feature-importances">Feature importances</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">python_scripts</a></li>
 </ul>
 
@@ -182,9 +191,53 @@
 </style>
 <div class="section" id="machine-learning-on-rna-seq-data">
 <h1>Machine-Learning on RNA-Seq data<a class="headerlink" href="#machine-learning-on-rna-seq-data" title="Permalink to this headline">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>Include jupyter notebooks</p>
+<p>This chapter describes how to use the machine learning script and use different KEGG genes as filter.</p>
+<div class="section" id="machine-learning">
+<h2>Machine Learning<a class="headerlink" href="#machine-learning" title="Permalink to this headline">¶</a></h2>
+<p>This script should be run within the docker container using the <code class="docutils literal notranslate"><span class="pre">python_scrips/environment.yml</span></code>.
+For efficient investigation of different algorithms a wrapper bash command is outlined here.
+It executes the machine_learning script for all implemented algorithms and writes STDOUT and STDERR to a log file.</p>
+<p>Outputs:</p>
+<ul class="simple">
+<li><p>Plot of 10 most important features</p></li>
+<li><p>Feature importances as csv file</p></li>
+<li><p>Plot of confusion matrix</p></li>
+<li><p>Plot of ROC-AUC curve</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bash wrapper script</span>
+
+<span class="nb">declare</span> -a <span class="nv">classifiers</span><span class="o">=(</span><span class="s2">&quot;LinearSVC&quot;</span> <span class="s2">&quot;SVC&quot;</span> <span class="s2">&quot;RandomForest&quot;</span> <span class="s2">&quot;MultiLayerPerceptron&quot;</span><span class="o">)</span>
+
+<span class="k">for</span> val <span class="k">in</span> <span class="si">${</span><span class="nv">classifiers</span><span class="p">[@]</span><span class="si">}</span><span class="p">;</span> <span class="k">do</span>
+
+    <span class="nb">echo</span> Starting to train <span class="nv">$val</span> classifier
+
+    python container/app/machine_learning_tool.py <span class="se">\</span>
+    -i/--inpath &lt;gene_counts/TPM.txt&gt; <span class="se">\</span>
+    -m /--metadata &lt;metadata.csv&gt; <span class="se">\</span>
+    -a/--algorithm <span class="nv">$val</span> <span class="se">\</span>
+    <span class="o">[</span>-k/--kegg &lt;KEGG_filter.txt&gt;<span class="o">]</span> <span class="se">\</span>
+    -o/--outpath &lt;destination directory&gt; <span class="se">\</span>
+    -c/--cores &lt;INT&gt;  <span class="se">\</span>
+    -t/-title &lt;tissue_dataset&gt; <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span> &gt;&gt; out.log
+
+<span class="k">done</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="feature-importances">
+<h2>Feature importances<a class="headerlink" href="#feature-importances" title="Permalink to this headline">¶</a></h2>
+<p>Annotation of cancer prognostics can be done with the <code class="docutils literal notranslate"><span class="pre">get_protein_atlas.py</span></code> script.
+It deploys programmatic data access to the API of <cite>The Human Protein Atlas &lt;https://www.proteinatlas.org/&gt;_</cite> and retrieves information in JSON format.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>get_protein_atlas.py
+-i/--inpath:            Inpath to table with feature importance values <span class="o">(</span>CSV<span class="o">)</span>
+-c/--cancer:            Cancer <span class="nb">type</span> used <span class="k">for</span> query
+-o/--outpath:           Outpath <span class="k">for</span> annotated feature importance table <span class="o">(</span>CSV<span class="o">)</span>
+--latex:                If set, print annotated table <span class="k">in</span> latex format to STDOUT
+
+python get_protein_atlas.py -i &lt;feature_importance.csv&gt; -c &lt;Pancreatic/Liver&gt;  -o &lt;annotated_feature_importance.csv&gt;
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -193,6 +246,10 @@
            
           </div>
           <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="modules.html" class="btn btn-neutral float-right" title="python_scripts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="preprocessing_analysis.html" class="btn btn-neutral float-left" title="Preprocessing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 

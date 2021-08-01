@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Metadata acquisition &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Preprocessing" href="preprocessing_analysis.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Metadata acquisition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#acquisition-of-rna-seq-data">Acquisition of RNA-Seq data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tcga">TCGA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#icgc">ICGC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gtex-ncbi-sra">GTEX / NCBI SRA</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#obtain-rna-seq-expression-data">Obtain RNA-Seq expression data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#metadata">Metadata</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">python_scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Metadata acquisition</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/metadata.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="metadata-acquisition">
+<h1>Metadata acquisition<a class="headerlink" href="#metadata-acquisition" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="acquisition-of-rna-seq-data">
+<h2>Acquisition of RNA-Seq data<a class="headerlink" href="#acquisition-of-rna-seq-data" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="tcga">
+<h3>TCGA<a class="headerlink" href="#tcga" title="Permalink to this headline">¶</a></h3>
+<p>Download <a class="reference external" href="https://gdc.cancer.gov/access-data/gdc-data-transfer-tool">GDC transfer tool</a> to <code class="docutils literal notranslate"><span class="pre">/usr/local/bin/</span></code> or another location in <code class="docutils literal notranslate"><span class="pre">$PATH</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget <span class="s1">&#39;https://gdc.cancer.gov/files/public/file/gdc-client_v1.6.0_Ubuntu_x64-py3.7_0.zip&#39;</span> -nv -O gdc-client_v1.6.0_Ubuntu_x64-py3.7_0.zip
+unzip gdc-client_v1.6.0_Ubuntu_x64-py3.7_0.zip
+</pre></div>
+</div>
+<p>Obtain a manifest for data download and an authentication token.
+Download data with the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gdc-client download -m &lt;manifest&gt; -t &lt;token&gt; -d &lt;outdir&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="icgc">
+<h3>ICGC<a class="headerlink" href="#icgc" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ICGC currently allows download of data from the Collaboratory Repository without having specific cloud access.
+Other repositories need cloud access.</p>
+</div>
+<p>Download <a class="reference external" href="https://docs.icgc.org/download/guide/#installation-of-the-score-client">score-client</a> (requires OpenJDK11)</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget -O score-client.tar.gz https://artifacts.oicr.on.ca/artifactory/dcc-release/bio/overture/score-client/<span class="se">\[</span>RELEASE<span class="se">\]</span>/score-client-<span class="se">\[</span>RELEASE<span class="se">\]</span>-dist.tar.gz
+tar -xvzf score-client.tar.gz
+<span class="nb">cd</span> score-client-5.1.0  <span class="c1"># or newer version</span>
+bin/score-client
+</pre></div>
+</div>
+<p>Get access token and store under <code class="docutils literal notranslate"><span class="pre">score-client/conf/application.properties</span></code></p>
+<p>Download Data</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>score-client --profile collab download --manifest &lt;manifest.tsv&gt; --output-dir &lt;dir&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="gtex-ncbi-sra">
+<h3>GTEX / NCBI SRA<a class="headerlink" href="#gtex-ncbi-sra" title="Permalink to this headline">¶</a></h3>
+<p>Download data from GTEX project via the Short Read Archive using the <a class="reference external" href="https://github.com/qbic-pipelines/sradownloader">qbic-pipelines/sradownloader</a>.
+The current version does not support automatic metadata download yet, but it will be a feature in the future.</p>
+</div>
+</div>
+<div class="section" id="obtain-rna-seq-expression-data">
+<h2>Obtain RNA-Seq expression data<a class="headerlink" href="#obtain-rna-seq-expression-data" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Run <a class="reference external" href="https://github.com/qbic-pipelines/bamtofastq">qbic-pipelines/bamtofastq</a>  <code class="docutils literal notranslate"><span class="pre">v.1.1.0</span></code></p></li>
+<li><p>Run <a class="reference external" href="https://nf-co.re/rnaseq/1.4.2/usage">nf-core/rnaseq</a>  <code class="docutils literal notranslate"><span class="pre">v.1.4.2</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="metadata">
+<h2>Metadata<a class="headerlink" href="#metadata" title="Permalink to this headline">¶</a></h2>
+<p>Download <a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/scripts/tcga_metadata.sh">tcga metadata</a> from <strong>TCGA</strong> via API from <a class="reference external" href="https://docs.gdc.cancer.gov/API/Users_Guide/Appendix_A_Available_Fields/#case-fields">Case endpoint</a> <code class="docutils literal notranslate"><span class="pre">json</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash tcga_metadata.sh &lt;manifest&gt; &lt;json_files&gt;
+</pre></div>
+</div>
+<p>Download <a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/scripts/icgc_metadata.sh">icgc metadata</a> from <strong>ICGC</strong> via API from <a class="reference external" href="https://docs.icgc.org/portal/api-endpoints/#!/donors/find">file and donor endpoint</a> <code class="docutils literal notranslate"><span class="pre">json</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash icgc_metadata.sh &lt;manifest&gt; &lt;json_file_endpt&gt; &lt;json_donor_endpt&gt;
+</pre></div>
+</div>
+<p>Download <a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/scripts/metadata.nf">sra metadata</a> from <strong>NCBI SRA</strong> <code class="docutils literal notranslate"><span class="pre">csv,</span> <span class="pre">xml</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nextflow run metadata.nf --run_acc_list &lt;SRA.txt&gt; --outdir &lt;results&gt;
+</pre></div>
+</div>
+<p>Extract metadata from <strong>TCGA, ICGC, SRA into one table</strong> <code class="docutils literal notranslate"><span class="pre">csv</span></code></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Allows multiple paths as input</p>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>metadata_processing.py --icgc &lt;path_to_json&gt; --sra &lt;path_to_csv&gt; --tcga &lt;path_to_json&gt; -o &lt;all_metadata.csv&gt;
+</pre></div>
+</div>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Structure of table output from metadata_processing.py</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>FileID</p></th>
+<th class="head"><p>CaseID</p></th>
+<th class="head"><p>SampleType</p></th>
+<th class="head"><p>Project</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FileID1</p></td>
+<td><p>SampleID1</p></td>
+<td><p>normal</p></td>
+<td><p>Project1</p></td>
+</tr>
+<tr class="row-odd"><td><p>FileID1</p></td>
+<td><p>SampleID2</p></td>
+<td><p>tumor</p></td>
+<td><p>Project2</p></td>
+</tr>
+</tbody>
+</table>
+<p>Extract rich metadata from TCGA or ICGC containing additional information on primary diagnosis,
+tumor subtype, gender, vital status, age, survival time, tumor stage, Icd10</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tcga<span class="p">|</span>icgc_metadata_processing.py -i &lt;inpath&gt; -o &lt;outpath&gt;
+</pre></div>
+</div>
+<p>Extract rich metadata from NCBI SRA xml file and annotate with conditions.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>xml_soup.py -x &lt;inpath_xml_dir&gt; -o &lt;outpath&gt;
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="preprocessing_analysis.html" class="btn btn-neutral float-right" title="Preprocessing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

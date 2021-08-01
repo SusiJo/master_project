@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>machine_learning_tool module &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="metadata_processing module" href="metadata_processing.html" />
+    <link rel="prev" title="icgc_metadata_processing module" href="icgc_metadata_processing.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">python_scripts</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="clustering.html">clustering module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extract_gene_ids2name.html">extract_gene_ids2name module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fileUtils.html">fileUtils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="get_protein_atlas.html">get_protein_atlas module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="icgc_metadata_processing.html">icgc_metadata_processing module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">machine_learning_tool module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata_processing.html">metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_replica.html">merge_replica module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_gene_counts.html">merge_gene_counts module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parseFeatureCounts.html">parseFeatureCounts module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parseTPM.html">parseTPM module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sra_metadata_processing.html">sra_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcga_metadata_processing.html">tcga_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xml_soup.html">xml_soup module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">python_scripts</a> &raquo;</li>
+        
+      <li>machine_learning_tool module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/machine_learning_tool.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="module-machine_learning_tool">
+<span id="machine-learning-tool-module"></span><h1>machine_learning_tool module<a class="headerlink" href="#module-machine_learning_tool" title="Permalink to this headline">¶</a></h1>
+<p>This script can train different machine learning models performs grid search and evaluation of models</p>
+<dl class="py function">
+<dt id="machine_learning_tool.feature_reduction">
+<code class="sig-prename descclassname"><span class="pre">machine_learning_tool.</span></code><code class="sig-name descname"><span class="pre">feature_reduction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featureNames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machine_learning_tool.html#feature_reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machine_learning_tool.feature_reduction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to filter out 0-variance genes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_train</strong> – numpy.array of training data</p></li>
+<li><p><strong>X_test</strong> – numpy.array of testing data</p></li>
+<li><p><strong>featureNames</strong> – array with gene feature names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>filtered and scaled X_train, numpy array</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>filtered and scaled X_test, numpy array</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>filtered feature_names, list</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>filtered gene_ids, list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="machine_learning_tool.grid_search">
+<code class="sig-prename descclassname"><span class="pre">machine_learning_tool.</span></code><code class="sig-name descname"><span class="pre">grid_search</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refitting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_title</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machine_learning_tool.html#grid_search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machine_learning_tool.grid_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to perform grid search and print evaluation performance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – LinearSVC, SVC, RandomForest, MultiLayerPerceptron</p></li>
+<li><p><strong>model_dict</strong> – dictionary which instantiates models</p></li>
+<li><p><strong>X_train</strong> – scaled training data, numpy array</p></li>
+<li><p><strong>y_train</strong> – list of target values</p></li>
+<li><p><strong>X_test</strong> – scaled test data, numpy array</p></li>
+<li><p><strong>y_test</strong> – list of target test values</p></li>
+<li><p><strong>gene_ids</strong> – list of gene ids</p></li>
+<li><p><strong>feature_names</strong> – list of features</p></li>
+<li><p><strong>splits</strong> – number of splits for cross-validation</p></li>
+<li><p><strong>n_jobs</strong> – number of cpu-cores to be used</p></li>
+<li><p><strong>refitting</strong> – default is True</p></li>
+<li><p><strong>outpath</strong> – for plots and tables</p></li>
+<li><p><strong>dataset_title</strong> – i.e. tissue_dataset</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="machine_learning_tool.max_features_arr">
+<code class="sig-prename descclassname"><span class="pre">machine_learning_tool.</span></code><code class="sig-name descname"><span class="pre">max_features_arr</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_f_arr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machine_learning_tool.html#max_features_arr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machine_learning_tool.max_features_arr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for obtaining max_features as float array for RandomForest</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feature_names</strong> – array of gene feature names</p></li>
+<li><p><strong>max_f_arr</strong> – array of max_features to be converted into float array for grid search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>float array of max_features</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="machine_learning_tool.plot_bar">
+<code class="sig-prename descclassname"><span class="pre">machine_learning_tool.</span></code><code class="sig-name descname"><span class="pre">plot_bar</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machine_learning_tool.html#plot_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machine_learning_tool.plot_bar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot 10 most important features</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> – pandas Dataframe of feature importances</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="machine_learning_tool.print_mean_std_scores">
+<code class="sig-prename descclassname"><span class="pre">machine_learning_tool.</span></code><code class="sig-name descname"><span class="pre">print_mean_std_scores</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scoring_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machine_learning_tool.html#print_mean_std_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machine_learning_tool.print_mean_std_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print cross_validation_results</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scoring_dict</strong> – from grid_search, cross_val_score, cross_validate</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="machine_learning_tool.read_dataset">
+<code class="sig-prename descclassname"><span class="pre">machine_learning_tool.</span></code><code class="sig-name descname"><span class="pre">read_dataset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensembl_filter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id2name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machine_learning_tool.html#read_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machine_learning_tool.read_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to parse a dataset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – to input gene-expression table (GeneID, GeneName, Sample1, Sample2, …)</p></li>
+<li><p><strong>ensembl_filter</strong> – input list of ensembl_gene_ids</p></li>
+<li><p><strong>names</strong> – input list of gene_names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>pandas.Dataframe</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>sample_names, list</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>gene_ids = features, list</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>gene_names = feature_names, list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="machine_learning_tool.search_space">
+<code class="sig-prename descclassname"><span class="pre">machine_learning_tool.</span></code><code class="sig-name descname"><span class="pre">search_space</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machine_learning_tool.html#search_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machine_learning_tool.search_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to define the search space for GridSearch or RandomGridSearch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – one of LinearSVC, SVC, RandomForest, MultiLayerPerceptron</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>search space</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="metadata_processing.html" class="btn btn-neutral float-right" title="metadata_processing module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="icgc_metadata_processing.html" class="btn btn-neutral float-left" title="icgc_metadata_processing module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

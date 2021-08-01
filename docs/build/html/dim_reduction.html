@@ -89,17 +89,25 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gallery.html">Machine learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">python_scripts</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">clustering module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extract_gene_ids2name.html">extract_gene_ids2name module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fileUtils.html">fileUtils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="get_protein_atlas.html">get_protein_atlas module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="icgc_metadata_processing.html">icgc_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machine_learning_tool.html">machine_learning_tool module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metadata_processing.html">metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_replica.html">merge_replica module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_gene_counts.html">merge_gene_counts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parseFeatureCounts.html">parseFeatureCounts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parseTPM.html">parseTPM module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sra_metadata_processing.html">sra_metadata_processing module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tcga_metadata_processing.html">tcga_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xml_soup.html">xml_soup module</a></li>
 </ul>
 </li>
 </ul>
@@ -213,10 +221,15 @@
 </dd></dl>
 
 <dl class="py function">
+<dt id="clustering.plotly_comparison">
+<code class="sig-prename descclassname"><span class="pre">clustering.</span></code><code class="sig-name descname"><span class="pre">plotly_comparison</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pcolor_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ccolor_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clustering.html#plotly_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clustering.plotly_comparison" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="clustering.read_metadata">
 <code class="sig-prename descclassname"><span class="pre">clustering.</span></code><code class="sig-name descname"><span class="pre">read_metadata</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clustering.html#read_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clustering.read_metadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in metadata file csv format
-FileID, SampleType, CaseID, Project</p>
+FileID, CaseID, SampleType, Project</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>meta_dict</p>
@@ -225,16 +238,19 @@ FileID, SampleType, CaseID, Project</p>
 <dd class="field-even"><p>target_names: dict</p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>target: array</p>
+<dd class="field-odd"><p>target: array [0,1,0,0,1,1,1,0…]</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>annotation: pd.DataFrame</p>
+<dd class="field-even"><p>annotation: pd.DataFrame {ID, Condition, CaseID, Project}</p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>project_arr</p>
+<dd class="field-odd"><p>project_arr: numerical encoding of projects [0,1,1,2,0,3,…]</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>color_list</p>
+<dd class="field-even"><p>color_list: color list for conditions</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>pcolor_list: project color list</p>
 </dd>
 </dl>
 </dd></dl>

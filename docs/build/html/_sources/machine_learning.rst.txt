@@ -1,6 +1,57 @@
 Machine-Learning on RNA-Seq data
 ================================
 
-.. todo:: 
-   Include jupyter notebooks
+This chapter describes how to use the machine learning script and use different KEGG genes as filter.
 
+
+Machine Learning
+****************
+
+This script should be run within the docker container using the ``python_scrips/environment.yml``.
+For efficient investigation of different algorithms a wrapper bash command is outlined here.
+It executes the machine_learning script for all implemented algorithms and writes STDOUT and STDERR to a log file.
+
+Outputs: 
+
+* Plot of 10 most important features
+* Feature importances as csv file
+* Plot of confusion matrix
+* Plot of ROC-AUC curve
+
+.. code-block:: bash
+
+    # Bash wrapper script
+
+    declare -a classifiers=("LinearSVC" "SVC" "RandomForest" "MultiLayerPerceptron") 
+
+    for val in ${classifiers[@]}; do
+
+        echo Starting to train $val classifier
+
+        python container/app/machine_learning_tool.py \
+        -i/--inpath <gene_counts/TPM.txt> \
+        -m /--metadata <metadata.csv> \
+        -a/--algorithm $val \
+        [-k/--kegg <KEGG_filter.txt>] \
+        -o/--outpath <destination directory> \
+        -c/--cores <INT>  \
+        -t/-title <tissue_dataset> 2>&1 >> out.log 
+
+    done 
+
+
+Feature importances
+*******************
+
+Annotation of cancer prognostics can be done with the ``get_protein_atlas.py`` script.
+It deploys programmatic data access to the API of `The Human Protein Atlas <https://www.proteinatlas.org/>_` and retrieves information in JSON format.
+
+.. code-block:: bash
+
+    get_protein_atlas.py
+    -i/--inpath:            Inpath to table with feature importance values (CSV)
+    -c/--cancer:            Cancer type used for query
+    -o/--outpath:           Outpath for annotated feature importance table (CSV) 
+    --latex:                If set, print annotated table in latex format to STDOUT
+
+    python get_protein_atlas.py -i <feature_importance.csv> -c <Pancreatic/Liver>  -o <annotated_feature_importance.csv>

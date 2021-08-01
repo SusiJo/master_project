@@ -1,0 +1,472 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>xml_soup &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">python_scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>xml_soup</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for xml_soup</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Script to parse metadata from NCBI SRA for Liver tissue</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">import</span> <span class="nn">fileUtils.file_handling</span> <span class="k">as</span> <span class="nn">fh</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="c1"># Create logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;SRA metadata reader&#39;</span><span class="p">)</span>
+<span class="c1"># Create console handler</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="c1"># Create formatter</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="c1"># add ch to logger</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-x&#39;</span><span class="p">,</span> <span class="s1">&#39;--xml&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path to xml metadata files&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to folder with metadata in xml format&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--outpath&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;path for output table &#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Table with rich metadata and short metadata table in csv format.</span><span class="se">\n</span><span class="s1">&#39;</span>
+                   <span class="s1">&#39;Extension is filled automatically.&#39;</span><span class="p">,</span>
+              <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get files&#39;</span><span class="p">)</span>
+    <span class="n">all_xml_files</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_files</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="s1">&#39;*.xml&#39;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parsing xml files...&#39;</span><span class="p">)</span>
+    <span class="n">parse_soup</span><span class="p">(</span><span class="n">all_xml_files</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process finished in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;sec&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_soup"><a class="viewcode-back" href="../xml_soup.html#xml_soup.parse_soup">[docs]</a><span class="k">def</span> <span class="nf">parse_soup</span><span class="p">(</span><span class="n">xml_files</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to parse a folder with xml files from NCBI</span>
+
+<span class="sd">    :param xml_files: path to folder</span>
+<span class="sd">    :param outpath: path for metadata.csv sheet</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sample_attributes_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">sample_attributes_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xml_files</span><span class="p">):</span>
+        <span class="c1"># define &amp;  clear all fields for metadata sheet</span>
+        <span class="n">library_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">bio_sample</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">subject_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">sample_title</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">taxon_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">taxon_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">gender</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># sex, Sex</span>
+        <span class="n">disease</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># study_disease</span>
+        <span class="n">body_site</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># body site, body_site</span>
+        <span class="n">source_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">histological_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">tissue_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">is_tumor</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">disease_state</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># disease status</span>
+        <span class="n">subject_status</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># subject is affected</span>
+        <span class="n">hbv_infection</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">cirrhosis</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># primary tumor cirrhosis</span>
+        <span class="n">tumor_stage</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># staging,  stage</span>
+        <span class="n">tumor_grade</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># total grade, primary tumor grade,</span>
+        <span class="n">cell_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">primary_tumor_cirrhosis</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">sample_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">clinical_characteristics</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">phenotype</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">tumor_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">tumor_status</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">cancer_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">diagnosis</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">health_state</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">rna_source</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">srr</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">&quot;lxml-xml&quot;</span><span class="p">)</span>
+
+            <span class="n">experiment_title</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">EXPERIMENT</span><span class="o">.</span><span class="n">TITLE</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">study_ref</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">EXPERIMENT</span><span class="o">.</span><span class="n">STUDY_REF</span><span class="o">.</span><span class="n">IDENTIFIERS</span><span class="o">.</span><span class="n">PRIMARY_ID</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">DESIGN</span><span class="o">.</span><span class="n">LIBRARY_DESCRIPTOR</span><span class="o">.</span><span class="n">LIBRARY_NAME</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">library_name</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">DESIGN</span><span class="o">.</span><span class="n">LIBRARY_DESCRIPTOR</span><span class="o">.</span><span class="n">LIBRARY_NAME</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">library_strategy</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">DESIGN</span><span class="o">.</span><span class="n">LIBRARY_DESCRIPTOR</span><span class="o">.</span><span class="n">LIBRARY_STRATEGY</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="n">library_selection</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">DESIGN</span><span class="o">.</span><span class="n">LIBRARY_DESCRIPTOR</span><span class="o">.</span><span class="n">LIBRARY_SELECTION</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">STUDY</span><span class="o">.</span><span class="n">IDENTIFIERS</span><span class="o">.</span><span class="n">EXTERNAL_ID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">bio_sample</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">STUDY</span><span class="o">.</span><span class="n">IDENTIFIERS</span><span class="o">.</span><span class="n">EXTERNAL_ID</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">IDENTIFIERS</span><span class="o">.</span><span class="n">EXTERNAL_ID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">bio_sample</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">IDENTIFIERS</span><span class="o">.</span><span class="n">EXTERNAL_ID</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">TITLE</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sample_title</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">TITLE</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_NAME</span><span class="o">.</span><span class="n">TAXON_ID</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">taxon_id</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_NAME</span><span class="o">.</span><span class="n">TAXON_ID</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_NAME</span><span class="o">.</span><span class="n">SCIENTIFIC_NAME</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">taxon_name</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_NAME</span><span class="o">.</span><span class="n">SCIENTIFIC_NAME</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_NAME</span><span class="o">.</span><span class="n">COMMON_NAME</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">taxon_name</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_NAME</span><span class="o">.</span><span class="n">COMMON_NAME</span><span class="o">.</span><span class="n">text</span>
+
+            <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTES</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTES</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTE</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;source_name&#39;</span><span class="p">:</span>
+                    <span class="n">source_name</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTES</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTE</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+
+                <span class="c1"># Extract all possible sample attribute tags</span>
+                <span class="n">sample_attributes</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">repr</span><span class="p">(</span><span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span><span class="p">))</span> <span class="k">for</span> <span class="n">sibling</span> <span class="ow">in</span>
+                                     <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTES</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTE</span><span class="o">.</span><span class="n">next_siblings</span><span class="p">]</span>
+
+                <span class="c1"># Iterate over all sample attributes</span>
+                <span class="k">for</span> <span class="n">sibling</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">SAMPLE</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTES</span><span class="o">.</span><span class="n">SAMPLE_ATTRIBUTE</span><span class="o">.</span><span class="n">next_siblings</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;gap_subject_id&#39;</span><span class="p">:</span>
+                        <span class="n">subject_id</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;age&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;DONOR_AGE&#39;</span> <span class="ow">or</span> \
+                            <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;patient age at resection&#39;</span><span class="p">:</span>
+                        <span class="n">age</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;gender&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;sex&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;Sex&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;patient sex&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;DONOR_SEX&#39;</span><span class="p">:</span>
+                        <span class="n">gender</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;study disease&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;disease&#39;</span><span class="p">:</span>
+                        <span class="n">disease</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;body site&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;body_site&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;organism_part&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;OrganismPart&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;source_name&#39;</span><span class="p">:</span>
+                        <span class="n">body_site</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;histological type&#39;</span><span class="p">:</span>
+                        <span class="n">histological_type</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tissue type&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tissue type/source&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tissue&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tissue source&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tissue_type&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;TISSUE_TYPE&#39;</span><span class="p">:</span>
+                        <span class="n">tissue_type</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;is tumor&#39;</span><span class="p">:</span>
+                        <span class="n">is_tumor</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;disease state&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;disease status&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;DISEASE&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;infection status&#39;</span><span class="p">:</span>
+                        <span class="n">disease_state</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;subject status&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span>
+                        <span class="n">subject_status</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;hbv infection&#39;</span><span class="p">:</span>
+                        <span class="n">hbv_infection</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;cirrhosis&#39;</span><span class="p">:</span>
+                        <span class="n">cirrhosis</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tumor stage&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;staging&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;disease_stage&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;stage&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;disease stage&#39;</span><span class="p">:</span>
+                        <span class="n">tumor_stage</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;total grade&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tumor grade&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;primary tumor grade&#39;</span><span class="p">:</span>
+                        <span class="n">tumor_grade</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;cell type&#39;</span><span class="p">:</span>
+                        <span class="n">cell_type</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;primary tumor cirrhosis&#39;</span><span class="p">:</span>
+                        <span class="n">primary_tumor_cirrhosis</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;sample_type&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;BIOMATERIAL_TYPE&quot;</span><span class="p">:</span>
+                        <span class="n">sample_type</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;clinical characteristics&#39;</span><span class="p">:</span>
+                        <span class="n">clinical_characteristics</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;phenotype&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;Phenotype&#39;</span><span class="p">:</span>
+                        <span class="n">phenotype</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tumor type&#39;</span><span class="p">:</span>
+                        <span class="n">tumor_type</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;tumor status&#39;</span><span class="p">:</span>
+                        <span class="n">tumor_status</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;cancer type&#39;</span><span class="p">:</span>
+                        <span class="n">cancer_type</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;diagnosis&#39;</span><span class="p">:</span>
+                        <span class="n">diagnosis</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;DONOR_HEALTH_STATUS&#39;</span> <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;health_state&#39;</span> \
+                            <span class="ow">or</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;health state&#39;</span><span class="p">:</span>
+                        <span class="n">health_state</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span>
+                        <span class="n">label</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;Description&#39;</span><span class="p">:</span>
+                        <span class="n">description</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">if</span> <span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s1">&#39;rna source&#39;</span><span class="p">:</span>
+                        <span class="n">rna_source</span> <span class="o">=</span> <span class="n">sibling</span><span class="o">.</span><span class="n">VALUE</span><span class="o">.</span><span class="n">text</span>
+
+                    <span class="c1"># save list of complete sample attribute possibilities for filtering interesing keywords</span>
+                    <span class="k">if</span> <span class="nb">repr</span><span class="p">(</span><span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sample_attributes_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">sample_attributes_dict</span><span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">sibling</span><span class="o">.</span><span class="n">TAG</span><span class="o">.</span><span class="n">text</span><span class="p">)]</span> <span class="o">=</span> <span class="n">i</span>
+
+            <span class="c1"># save each Run accession and associated metadata</span>
+            <span class="k">if</span> <span class="n">srr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">srr</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">experiment_title</span><span class="p">,</span> <span class="n">study_ref</span><span class="p">,</span> <span class="n">library_name</span><span class="p">,</span> <span class="n">library_strategy</span><span class="p">,</span> <span class="n">library_selection</span><span class="p">,</span>
+                                 <span class="n">bio_sample</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">sample_title</span><span class="p">,</span> <span class="n">taxon_id</span><span class="p">,</span> <span class="n">taxon_name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">gender</span><span class="p">,</span> <span class="n">disease</span><span class="p">,</span>
+                                 <span class="n">disease_state</span><span class="p">,</span> <span class="n">body_site</span><span class="p">,</span> <span class="n">source_name</span><span class="p">,</span> <span class="n">histological_type</span><span class="p">,</span> <span class="n">tissue_type</span><span class="p">,</span> <span class="n">is_tumor</span><span class="p">,</span>
+                                 <span class="n">subject_status</span><span class="p">,</span> <span class="n">hbv_infection</span><span class="p">,</span> <span class="n">cirrhosis</span><span class="p">,</span> <span class="n">tumor_stage</span><span class="p">,</span> <span class="n">tumor_grade</span><span class="p">,</span> <span class="n">cell_type</span><span class="p">,</span>
+                                 <span class="n">primary_tumor_cirrhosis</span><span class="p">,</span> <span class="n">sample_type</span><span class="p">,</span> <span class="n">clinical_characteristics</span><span class="p">,</span> <span class="n">phenotype</span><span class="p">,</span> <span class="n">tumor_type</span><span class="p">,</span>
+                                 <span class="n">tumor_status</span><span class="p">,</span> <span class="n">cancer_type</span><span class="p">,</span> <span class="n">diagnosis</span><span class="p">,</span> <span class="n">health_state</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">rna_source</span>
+                                 <span class="p">]</span>
+
+                <span class="c1"># include cause_of_resections</span>
+
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;([N|n]on-?\_?[T|t]umor)|([N|n]on-?\_?[C|c]ancer)|(normal)|([H|h]ealthy)|([C|c]ontr?ol)&quot;</span>
+                        <span class="sa">r</span><span class="s2">&quot;|(\_ant)|(adjacent)|([\_|-]N\d)|(\dN;?)|([N|n]or)|([C|c]trl)|((B|(MC))-?\d+[\_]RNA-Seq)&quot;</span><span class="p">,</span>
+                        <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+    <span class="n">tumor</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;([T|t]o?umor)|([H|h]cc)|([H|h]epatocellular)|([C|c]ancer)([D|d]isease)|(carcinoma)|&quot;</span>
+                       <span class="sa">r</span><span class="s2">&quot;(\_T\d)|(\dT;?)|(icc)|(hgdn)|(lgnd)|(p?dc)|(metastas)&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+    <span class="c1"># filter for normal keywords</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">normal_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">normal_list</span><span class="p">):</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;normal&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># filter remaining empty values for tumor keywords</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">tumor_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">tumor</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">tumor_list</span><span class="p">):</span>
+            <span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tumor&#39;</span>
+
+    <span class="c1"># create dataframe from rich metadata</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Experiment_title&#39;</span><span class="p">,</span> <span class="s1">&#39;Study_ref&#39;</span><span class="p">,</span> <span class="s1">&#39;Library_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Library_strategy&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Library_selection&#39;</span><span class="p">,</span> <span class="s1">&#39;BioSample&#39;</span><span class="p">,</span> <span class="s1">&#39;Subject_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample_title&#39;</span><span class="p">,</span> <span class="s1">&#39;Taxon_id&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Taxon_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Age&#39;</span><span class="p">,</span> <span class="s1">&#39;Gender&#39;</span><span class="p">,</span> <span class="s1">&#39;Disease&#39;</span><span class="p">,</span> <span class="s1">&#39;Disease_State&#39;</span><span class="p">,</span> <span class="s1">&#39;Body_site&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Source_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Histological_Type&#39;</span><span class="p">,</span> <span class="s1">&#39;Tissue_type&#39;</span><span class="p">,</span> <span class="s1">&#39;Is_tumor&#39;</span><span class="p">,</span> <span class="s1">&#39;Subject_status&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;HBV-infection&#39;</span><span class="p">,</span> <span class="s1">&#39;Cirrhosis&#39;</span><span class="p">,</span> <span class="s1">&#39;Tumor_stage&#39;</span><span class="p">,</span> <span class="s1">&#39;Tumor_grade&#39;</span><span class="p">,</span> <span class="s1">&#39;Cell_type&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Primary_tumor_cirrhosis&#39;</span><span class="p">,</span> <span class="s1">&#39;Sample_type&#39;</span><span class="p">,</span> <span class="s1">&#39;Clinical_characteristics&#39;</span><span class="p">,</span> <span class="s1">&#39;Phenotype&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Tumor_type&#39;</span><span class="p">,</span> <span class="s1">&#39;Tumor_status&#39;</span><span class="p">,</span> <span class="s1">&#39;Cancer_type&#39;</span><span class="p">,</span> <span class="s1">&#39;Diagnosis&#39;</span><span class="p">,</span> <span class="s1">&#39;Health_state&#39;</span><span class="p">,</span> <span class="s1">&#39;Label&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Description&#39;</span><span class="p">,</span> <span class="s1">&#39;Rna_source&#39;</span><span class="p">,</span> <span class="s1">&#39;Condition&#39;</span>
+                                         <span class="p">])</span>
+
+    <span class="c1"># save dataframe on disk</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="s1">&#39;RunID&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># save metadata table additionally as short table</span>
+    <span class="n">metadata_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;RunID&#39;</span><span class="p">,</span> <span class="s1">&#39;BioSample&#39;</span><span class="p">,</span> <span class="s1">&#39;Condition&#39;</span><span class="p">,</span> <span class="s1">&#39;Study_ref&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">metadata_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;RunID&#39;</span><span class="p">:</span> <span class="s1">&#39;FileID&#39;</span><span class="p">,</span> <span class="s1">&#39;BioSample&#39;</span><span class="p">:</span> <span class="s1">&#39;CaseID&#39;</span><span class="p">,</span> <span class="s1">&#39;Condition&#39;</span><span class="p">:</span> <span class="s1">&#39;SampleType&#39;</span><span class="p">,</span> <span class="s1">&#39;Study_ref&#39;</span><span class="p">:</span> <span class="s1">&#39;Project&#39;</span><span class="p">},</span>
+        <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">metadata_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s1">&#39;_short.csv&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

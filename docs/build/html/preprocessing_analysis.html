@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Preprocessing &mdash; master_project 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Machine-Learning on RNA-Seq data" href="machine_learning.html" />
+    <link rel="prev" title="Metadata acquisition" href="metadata.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> master_project
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parsing-stringtie-tpm">Parsing stringTie-TPM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parsing-featurecounts">Parsing FeatureCounts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#merging-replica">Merging Replica</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-correction">Batch Correction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#analysis">Analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dimension-reduction-clustering-analysis">Dimension Reduction/ Clustering analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">python_scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">master_project</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Preprocessing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/preprocessing_analysis.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="preprocessing">
+<h1>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h1>
+<p>This chapter outlines how to use the command-line tools.</p>
+<div class="section" id="parsing-stringtie-tpm">
+<h2>Parsing stringTie-TPM<a class="headerlink" href="#parsing-stringtie-tpm" title="Permalink to this headline">¶</a></h2>
+<p>The script merges TPM values from <code class="docutils literal notranslate"><span class="pre">rnaseq/stringTieFPKM/</span></code> and maps them to all possible Ensembl gene_ids
+and Ensembl gene_names of the nf-core/rnaseq pipeline.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>parseTPM.py
+-i/--inpath:  Path to stringtie folder
+-g/--genes:   Path to extracted genes from rnaseq file
+-o/--outpath: Path to output file - tsv table containing merged TPM values
+
+python parseTPM.py -i &lt;path_to/stringTieFPKM/&gt; -g &lt;path_to/genes_id2name&gt; -o &lt;path_to/mergedTPM&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="parsing-featurecounts">
+<h2>Parsing FeatureCounts<a class="headerlink" href="#parsing-featurecounts" title="Permalink to this headline">¶</a></h2>
+<p>Depending on whether the pipeline has run through without issues it is possible to
+directly take the <code class="docutils literal notranslate"><span class="pre">rnaseq/featureCounts/merged_gene_counts.txt</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>merge_gene_counts.py
+-i/--inpath:      Path to folder with nf-core/rnaseq/featureCounts/merged_gene_counts.txt tables to be merged
+-o/--outpath:     Destination directory. Extension of file filled automatically
+-p/--pseudogenes: Path to file with tab separated file with pseudogenes as EnsemblID
+
+python merge_gene_counts.py -i &lt;merged_gene_counts.txt&gt; -p &lt;pseudogenes.txt&gt; -o &lt;gene_table.txt&gt;
+</pre></div>
+</div>
+<p>If the pipeline had errors and stopped, it might be necessary to merge the raw counts
+separately from <code class="docutils literal notranslate"><span class="pre">rnaseq/featureCounts/gene_counts/</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>parseFeatureCounts.py
+-i/--inpath:            Path to featureCounts/gene_counts/
+-g/--genes:             Path to extracted genes from rnaseq file
+--lengths/--no-lengths:  Extract featureLengths <span class="o">(</span>into csv<span class="o">)</span> <span class="k">for</span> raw count to TPM conversion <span class="o">(</span><span class="k">do</span> this only once<span class="o">)</span>
+-o/--outpath:           Path to output file - tsv table containing merged raw counts
+
+python parseFeatureCounts.py -i &lt;path_to/gene_counts/&gt; --no-lengths -g &lt;path_to/genes_id2name&gt; -o &lt;path_to/mergedFeatureCounts&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="merging-replica">
+<h2>Merging Replica<a class="headerlink" href="#merging-replica" title="Permalink to this headline">¶</a></h2>
+<p>If biological replicates are present, it is necessary to merge them into a single observation.
+For this purpose the <code class="docutils literal notranslate"><span class="pre">merge_replica.py</span></code> script needs the associated metadata table.
+It produces two gene_count output tables which can be both input into the clustering analysis.</p>
+<p>The outputs are:</p>
+<ul class="simple">
+<li><p>gene_count_table [GeneID, GeneName, ID1, ID2, …]</p></li>
+<li><p>transformed metadata [FileID, CaseID, SampleType, Project]</p></li>
+<li><p>combined gene_count_metadata_table [CaseID, SampleType, Condition, Project, UUID, ID1, ID2, …]</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>merge_replica.py
+-i/--inpath:        Path to merged_gene_counts.txt/ mergedFeatureCounts.txt
+-m/--metadata:      Path to metadata from metadata_processing.py
+-o/--outpath:       Output directory
+</pre></div>
+</div>
+</div>
+<div class="section" id="batch-correction">
+<h2>Batch Correction<a class="headerlink" href="#batch-correction" title="Permalink to this headline">¶</a></h2>
+<p>Adjust for known batch effects arising from technical variation with ComBat, ComBat-Seq (svaseq) and <code class="docutils literal notranslate"><span class="pre">removeBatchEffect()</span></code> from Limma.
+Needs raw featureCounts as input and converts the counts to TPM units.
+The <a class="reference external" href="https://github.com/SusiJo/master_project/blob/main/R_notebooks/batch_correction.R">batch_correction.R</a> script should be run
+from within the R_docker_container.
+Additionally performs Principal Component Analysis for a first overview of the effect of batch correction.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># run in R_container</span>
+
+Rscript container/app/batch_correction.R
+-c/--counts:    Path to gene_count_table.txt
+-m/--metadata:  Path to metadata.csv
+-l/--lengths:   Path to featureLengths.txt - can be obtained by running parseFeatureCounts.py once with --lengths
+-t/--title:     Title <span class="k">for</span> plots
+-o/--outpath:   Destination outpath
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="analysis">
+<h1>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dimension-reduction-clustering-analysis">
+<h2>Dimension Reduction/ Clustering analysis<a class="headerlink" href="#dimension-reduction-clustering-analysis" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">mergedTPM/gene_counts.txt</span></code> file has 63,675 unique genes and are highly dimensional.
+Without pseudogenes there are still 47,224 genes left.
+In order to get a feeling for the structure of the data, it is helpful to
+reduce the number of dimensions to a lower dimensional embedding.
+It is advisable to run the script before and after batch correction to get additional plots
+with non-linear dimensionality reduction techniques.</p>
+</div>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">clustering.py()</span></code></p>
+<ul class="simple">
+<li><p>scales the data on the gene features with sklearn.preprocessing.MinMaxScaler() to preserve the variances</p></li>
+<li><p>can perform unsupervised linear reduction via Principal Component Analysis - PCA</p></li>
+<li><p>can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - TSNE</p></li>
+<li><p>can perform non-linear stochastic reduction with Uniform Manifold Approximation Projection - UMAP</p></li>
+<li><p>outputs interactive html plots displaying metadata on hover (produced with plotly) and png images</p></li>
+<li><p>can plot a comparative clustering plot in one png image</p></li>
+<li><p>can perform silhouette plot analysis to get a good estimate of number of clusters (k-means clustering)</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>clustering.py
+-i/--inpath:      Path to mergedTPM table
+-m/--metadata:    Path to file with metadata <span class="k">for</span> hover_info <span class="k">in</span> plotly plots: <span class="o">[</span>FileID, CaseID, SampleType, Project<span class="o">]</span>
+-o/--outpath:     Path to images folder
+--pca/--no-pca:   Conditional flag to perform PCA
+--tsne/--no-tsne: Conditional flag to perform TSNE
+--umap/--no-umap: Conditional flag to perform UMAP
+--comparison/--no-comparison: Conditional flag to plot PCA, TSNE, UMAP <span class="k">in</span> one plot
+--silhouette/--no-silhouette: Conditional flag to perform silhouette analysis
+-t/--title:                    Title <span class="k">for</span> plots
+
+python clustering.py -i &lt;mergedTPM&gt; -m &lt;metadata&gt; -o &lt;images/&gt; --pca --tsne --umap --no-comparison --no-silhouette
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="machine_learning.html" class="btn btn-neutral float-right" title="Machine-Learning on RNA-Seq data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="metadata.html" class="btn btn-neutral float-left" title="Metadata acquisition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Susanne Jodoin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

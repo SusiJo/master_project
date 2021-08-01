@@ -41,7 +41,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="parseTPM module" href="parseTPM.html" />
-    <link rel="prev" title="metadata_processing module" href="metadata_processing.html" /> 
+    <link rel="prev" title="merge_gene_counts module" href="merge_gene_counts.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -89,17 +89,25 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gallery.html">Machine learning on RNA-Seq data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata acquisition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">python_scripts</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="clustering.html">clustering module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extract_gene_ids2name.html">extract_gene_ids2name module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fileUtils.html">fileUtils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="get_protein_atlas.html">get_protein_atlas module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="icgc_metadata_processing.html">icgc_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="machine_learning_tool.html">machine_learning_tool module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metadata_processing.html">metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_replica.html">merge_replica module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_gene_counts.html">merge_gene_counts module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">parseFeatureCounts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parseTPM.html">parseTPM module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sra_metadata_processing.html">sra_metadata_processing module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tcga_metadata_processing.html">tcga_metadata_processing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xml_soup.html">xml_soup module</a></li>
 </ul>
 </li>
 </ul>
@@ -200,7 +208,7 @@
 <dl class="py function">
 <dt id="parseFeatureCounts.parse_featureCounts">
 <code class="sig-prename descclassname"><span class="pre">parseFeatureCounts.</span></code><code class="sig-name descname"><span class="pre">parse_featureCounts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/parseFeatureCounts.html#parse_featureCounts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#parseFeatureCounts.parse_featureCounts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read a file and the sample ID and save gene_ids and tmp_values, adapted from Steffen Lemke</p>
+<dd><p>Read a file and the sample ID and save gene_ids and tmp_values</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -209,13 +217,13 @@
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>counts_all_files</p>
+<dd class="field-even"><p>counts_all_files list of lists</p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>gene_dict</p>
+<dd class="field-odd"><p>gene_dict of unique genes</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>geneLengths_all_files : dict mapping ids to lengths</p>
+<dd class="field-even"><p>geneLengths_all_files dict mapping ids to lengths</p>
 </dd>
 </dl>
 </dd></dl>
@@ -223,10 +231,7 @@
 <dl class="py function">
 <dt id="parseFeatureCounts.write_lengths">
 <code class="sig-prename descclassname"><span class="pre">parseFeatureCounts.</span></code><code class="sig-name descname"><span class="pre">write_lengths</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geneLengths_all_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/parseFeatureCounts.html#write_lengths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#parseFeatureCounts.write_lengths" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output</dt><dd><p>Comprises all non-overlapping bases in exons belonging to the same gene</p>
-</dd>
-</dl>
+<dd><p>Create mini-table with gene-lengths from RNAseq pipeline from FeatureCounts output</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -246,7 +251,7 @@
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="parseTPM.html" class="btn btn-neutral float-right" title="parseTPM module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="metadata_processing.html" class="btn btn-neutral float-left" title="metadata_processing module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="merge_gene_counts.html" class="btn btn-neutral float-left" title="merge_gene_counts module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
