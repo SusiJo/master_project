@@ -47,20 +47,20 @@ KEGG database
 For obtaining human or cancer genes from the KEGG database the following sources can be used.
 The tables have to be merged in a database-like fashion to be input in the ML script.
 
-*  Source of human KEGG `genes <http://rest.kegg.jp/list/hsa>`_
-*  Source of human KEGG `pathways <http://rest.kegg.jp/list/pathway/hsa>`_
-*  Source of NCBI Entrez Identifiers to KEGG `identifiers <http://rest.kegg.jp/conv/hsa/ncbi-geneid>`_
-*  Source of mapping NCBI Entrez to Ensembl `ids <https://www.genenames.org/cgi-bin/download/custom?col=gd_pub_eg_id&col=gd_pub_ensembl_id&status=Approved&status=Entry%20Withdrawn&hgnc_dbtag=on&order_by=gd_app_sym_sort&format=text&submit=submit>`_
+* Source of human KEGG `genes <http://rest.kegg.jp/list/hsa>`_
+* Source of human KEGG `pathways <http://rest.kegg.jp/list/pathway/hsa>`_
+* Source of NCBI Entrez Identifiers to KEGG `identifiers <http://rest.kegg.jp/conv/hsa/ncbi-geneid>`_
+* Source of mapping NCBI Entrez to Ensembl `ids <https://www.genenames.org/cgi-bin/download/custom?col=gd_pub_eg_id&col=gd_pub_ensembl_id&status=Approved&status=Entry%20Withdrawn&hgnc_dbtag=on&order_by=gd_app_sym_sort&format=text&submit=submit>`_
 
-*  05200 `Pathways in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05200>`_ , (`pathway list 5200 <http://rest.kegg.jp/link/hsa/hsa05200>`_)
-*  05202 `Transcriptional misregulation in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05202>`_ , (`pathway list 5202 <http://rest.kegg.jp/link/hsa/hsa05202>`_)
-*  05206 `MicroRNAs in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05206>`_ , (`pathway list 5206 <http://rest.kegg.jp/link/hsa/hsa05206>`_)
-*  05205 `Proteoglycans in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05205>`_ , (`pathway list  5205 <http://rest.kegg.jp/link/hsa/hsa05205>`_)
-*  05204 `Chemical carcinogenesis <https://www.kegg.jp/kegg-bin/show_pathway?hsa05204>`_ , (`pathway list 5204 <http://rest.kegg.jp/link/hsa/hsa05204>`_)
-*  05203 `Viral carcinogenesis <https://www.kegg.jp/kegg-bin/show_pathway?hsa05203>`_ , (`pathway list 5203 <http://rest.kegg.jp/link/hsa/hsa05203>`_)
-*  05230 `Central carbon metabolism in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05230>`_ , (`pathway list 5230 <http://rest.kegg.jp/link/hsa/hsa05230>`_)
-*  05231 `Choline metabolism in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05231>`_ , (`pathway list 5231 <http://rest.kegg.jp/link/hsa/hsa05231>`_)
-*  05235 `PD-L1 expression and PD-1 checkpoint pathway in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05235>`_ , (`pathway list 5235 <http://rest.kegg.jp/link/hsa/hsa05235>`_)
+* 05200 `Pathways in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05200>`_ , (`pathway list 5200 <http://rest.kegg.jp/link/hsa/hsa05200>`_)
+* 05202 `Transcriptional misregulation in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05202>`_ , (`pathway list 5202 <http://rest.kegg.jp/link/hsa/hsa05202>`_)
+* 05206 `MicroRNAs in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05206>`_ , (`pathway list 5206 <http://rest.kegg.jp/link/hsa/hsa05206>`_)
+* 05205 `Proteoglycans in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05205>`_ , (`pathway list  5205 <http://rest.kegg.jp/link/hsa/hsa05205>`_)
+* 05204 `Chemical carcinogenesis <https://www.kegg.jp/kegg-bin/show_pathway?hsa05204>`_ , (`pathway list 5204 <http://rest.kegg.jp/link/hsa/hsa05204>`_)
+* 05203 `Viral carcinogenesis <https://www.kegg.jp/kegg-bin/show_pathway?hsa05203>`_ , (`pathway list 5203 <http://rest.kegg.jp/link/hsa/hsa05203>`_)
+* 05230 `Central carbon metabolism in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05230>`_ , (`pathway list 5230 <http://rest.kegg.jp/link/hsa/hsa05230>`_)
+* 05231 `Choline metabolism in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05231>`_ , (`pathway list 5231 <http://rest.kegg.jp/link/hsa/hsa05231>`_)
+* 05235 `PD-L1 expression and PD-1 checkpoint pathway in cancer <https://www.kegg.jp/kegg-bin/show_pathway?hsa05235>`_ , (`pathway list 5235 <http://rest.kegg.jp/link/hsa/hsa05235>`_)
 
 
 

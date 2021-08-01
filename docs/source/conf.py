@@ -36,6 +36,7 @@ extensions = [
     'sphinx.ext.todo',
     'nbsphinx',
     'sphinx_gallery.load_style',
+    'sphinx_rtd_theme'
 ]
 
 # Display todos by setting to True
