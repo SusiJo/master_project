@@ -101,8 +101,8 @@ Analysis
 =========
 
 
-Dimension Reduction/ Clustering analysis
-****************************************
+Dimension Reduction / Embeddings with PCA, t-SNE and UMAP
+*********************************************************
 
 .. note:: 
     The ``mergedTPM/gene_counts.txt`` file has 63,675 unique genes and are highly dimensional. 
@@ -113,30 +113,30 @@ Dimension Reduction/ Clustering analysis
     with non-linear dimensionality reduction techniques.
 
 
-:func:`clustering.py`
+:func:`dim_reduction.py`
 
 * scales the data on the gene features with sklearn.preprocessing.MinMaxScaler() to preserve the variances
 * can perform unsupervised linear reduction via Principal Component Analysis - PCA
-* can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - TSNE
+* can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - t-SNE
 * can perform non-linear stochastic reduction with Uniform Manifold Approximation Projection - UMAP
 * outputs interactive html plots displaying metadata on hover (produced with plotly) and png images
-* can plot a comparative clustering plot in one png image
-* can perform silhouette plot analysis to get a good estimate of number of clusters (k-means clustering)
+* can produce a comparative embedding in one image
+* can produce a silhouette plot to get an estimate of number of clusters in the data (k-means clustering)
 
 .. code-block:: bash
 
-    clustering.py
-    -i/--inpath:      Path to mergedTPM table
+    dim_reduction.py
+    -i/--inpath:      Path to gene_expression_table
     -m/--metadata:    Path to file with metadata for hover_info in plotly plots: [FileID, CaseID, SampleType, Project]
-    -o/--outpath:     Path to images folder
+    -o/--outpath:     Path to output images folder
     --pca/--no-pca:   Conditional flag to perform PCA
-    --tsne/--no-tsne: Conditional flag to perform TSNE
+    --tsne/--no-tsne: Conditional flag to perform t-SNE
     --umap/--no-umap: Conditional flag to perform UMAP
-    --comparison/--no-comparison: Conditional flag to plot PCA, TSNE, UMAP in one plot
+    --comparison/--no-comparison: Conditional flag to plot PCA, t-SNE, UMAP in one plot
     --silhouette/--no-silhouette: Conditional flag to perform silhouette analysis
-    -t/--title:                    Title for plots
+    -t/--title:                   Title for plots
 
-    python clustering.py -i <mergedTPM> -m <metadata> -o <images/> --pca --tsne --umap --no-comparison --no-silhouette
+    python dim_reduction.py -i <mergedTPM> -m <metadata> -o <images/> --pca --tsne --umap --no-comparison --no-silhouette
 
 
 

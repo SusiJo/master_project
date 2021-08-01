@@ -14,8 +14,8 @@ Features
 * Extract metadata into a table in csv format
 * Merge TPM values from nf-core/rnaseq/stringTieFPKM
 * Merge raw featureCounts from nf-core/rnaseq/featureCounts
-* Clustering analyses performing PCA, TSNE, UMAP
-* Batch correction with ComBat, CombatSeq, removeBatchEffect()
+* Dimensionality reduction with PCA, t-SNE and UMAP
+* Batch correction in R with ComBat, CombatSeq, removeBatchEffect
 * Supvervised Classification Machine Learning: LinearSVM, SVM, RandomForest, MultiLayerPerceptron 
 
 
@@ -67,17 +67,23 @@ Alternative set up with docker container
 
 .. code-block:: bash
 
-   # folder structure
+   # folder structure within the container
 
    ├── app/
    │   ├── tools.py     
+   |   ├── ...
    ├── data/
    │     ├── ...  
    ├── Dockerfile
    ├── environment.yml
    └── results/
 
+   # copy the code to run in the container to ``app/`` and data to ``data/``
+
    # from within folder containing scripts, Dockerfile and environment.yml
    docker build -t <name> .
 
    docker run -it --rm -w <work_dir> -v <host_dir>:<container_dir> <container_name>
+
+   # run script from command-line
+   # note that the conda env is already activated

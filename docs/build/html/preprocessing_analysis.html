@@ -98,7 +98,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#analysis">Analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#dimension-reduction-clustering-analysis">Dimension Reduction/ Clustering analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dimension-reduction-embeddings-with-pca-t-sne-and-umap">Dimension Reduction / Embeddings with PCA, t-SNE and UMAP</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="machine_learning.html">Machine-Learning on RNA-Seq data</a></li>
@@ -273,8 +273,8 @@ Rscript container/app/batch_correction.R
 </div>
 <div class="section" id="analysis">
 <h1>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="dimension-reduction-clustering-analysis">
-<h2>Dimension Reduction/ Clustering analysis<a class="headerlink" href="#dimension-reduction-clustering-analysis" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dimension-reduction-embeddings-with-pca-t-sne-and-umap">
+<h2>Dimension Reduction / Embeddings with PCA, t-SNE and UMAP<a class="headerlink" href="#dimension-reduction-embeddings-with-pca-t-sne-and-umap" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">mergedTPM/gene_counts.txt</span></code> file has 63,675 unique genes and are highly dimensional.
@@ -284,28 +284,28 @@ reduce the number of dimensions to a lower dimensional embedding.
 It is advisable to run the script before and after batch correction to get additional plots
 with non-linear dimensionality reduction techniques.</p>
 </div>
-<p><code class="xref py py-func docutils literal notranslate"><span class="pre">clustering.py()</span></code></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">dim_reduction.py()</span></code></p>
 <ul class="simple">
 <li><p>scales the data on the gene features with sklearn.preprocessing.MinMaxScaler() to preserve the variances</p></li>
 <li><p>can perform unsupervised linear reduction via Principal Component Analysis - PCA</p></li>
-<li><p>can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - TSNE</p></li>
+<li><p>can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - t-SNE</p></li>
 <li><p>can perform non-linear stochastic reduction with Uniform Manifold Approximation Projection - UMAP</p></li>
 <li><p>outputs interactive html plots displaying metadata on hover (produced with plotly) and png images</p></li>
-<li><p>can plot a comparative clustering plot in one png image</p></li>
-<li><p>can perform silhouette plot analysis to get a good estimate of number of clusters (k-means clustering)</p></li>
+<li><p>can produce a comparative embedding in one image</p></li>
+<li><p>can produce a silhouette plot to get an estimate of number of clusters in the data (k-means clustering)</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>clustering.py
--i/--inpath:      Path to mergedTPM table
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dim_reduction.py
+-i/--inpath:      Path to gene_expression_table
 -m/--metadata:    Path to file with metadata <span class="k">for</span> hover_info <span class="k">in</span> plotly plots: <span class="o">[</span>FileID, CaseID, SampleType, Project<span class="o">]</span>
--o/--outpath:     Path to images folder
+-o/--outpath:     Path to output images folder
 --pca/--no-pca:   Conditional flag to perform PCA
---tsne/--no-tsne: Conditional flag to perform TSNE
+--tsne/--no-tsne: Conditional flag to perform t-SNE
 --umap/--no-umap: Conditional flag to perform UMAP
---comparison/--no-comparison: Conditional flag to plot PCA, TSNE, UMAP <span class="k">in</span> one plot
+--comparison/--no-comparison: Conditional flag to plot PCA, t-SNE, UMAP <span class="k">in</span> one plot
 --silhouette/--no-silhouette: Conditional flag to perform silhouette analysis
--t/--title:                    Title <span class="k">for</span> plots
+-t/--title:                   Title <span class="k">for</span> plots
 
-python clustering.py -i &lt;mergedTPM&gt; -m &lt;metadata&gt; -o &lt;images/&gt; --pca --tsne --umap --no-comparison --no-silhouette
+python dim_reduction.py -i &lt;mergedTPM&gt; -m &lt;metadata&gt; -o &lt;images/&gt; --pca --tsne --umap --no-comparison --no-silhouette
 </pre></div>
 </div>
 </div>

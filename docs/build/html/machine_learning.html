@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="preprocessing_analysis.html#analysis">Analysis</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Machine-Learning on RNA-Seq data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kegg-database">KEGG database</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#feature-importances">Feature importances</a></li>
 </ul>
 </li>
@@ -225,10 +226,64 @@ It executes the machine_learning script for all implemented algorithms and write
 </pre></div>
 </div>
 </div>
+<div class="section" id="kegg-database">
+<h2>KEGG database<a class="headerlink" href="#kegg-database" title="Permalink to this headline">¶</a></h2>
+<p>For obtaining human or cancer genes from the KEGG database the following sources can be used.
+The tables have to be merged in a database-like fashion to be input in the ML script.</p>
+<ul class="simple">
+<li><p>Source of human KEGG <a class="reference external" href="http://rest.kegg.jp/list/hsa">genes</a></p></li>
+<li><p>Source of human KEGG <a class="reference external" href="http://rest.kegg.jp/list/pathway/hsa">pathways</a></p></li>
+<li><p>Source of NCBI Entrez Identifiers to KEGG <a class="reference external" href="http://rest.kegg.jp/conv/hsa/ncbi-geneid">identifiers</a></p></li>
+<li><p>Source of mapping NCBI Entrez to Ensembl <a class="reference external" href="https://www.genenames.org/cgi-bin/download/custom?col=gd_pub_eg_id&amp;col=gd_pub_ensembl_id&amp;status=Approved&amp;status=Entry%20Withdrawn&amp;hgnc_dbtag=on&amp;order_by=gd_app_sym_sort&amp;format=text&amp;submit=submit">ids</a></p></li>
+</ul>
+<ul class="simple">
+<li><p>05200 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05200">Pathways in cancer</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05200">pathway list 5200</a>)</p></li>
+<li><p>05202 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05202">Transcriptional misregulation in cancer</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05202">pathway list 5202</a>)</p></li>
+<li><p>05206 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05206">MicroRNAs in cancer</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05206">pathway list 5206</a>)</p></li>
+<li><p>05205 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05205">Proteoglycans in cancer</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05205">pathway list  5205</a>)</p></li>
+<li><p>05204 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05204">Chemical carcinogenesis</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05204">pathway list 5204</a>)</p></li>
+<li><p>05203 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05203">Viral carcinogenesis</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05203">pathway list 5203</a>)</p></li>
+<li><p>05230 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05230">Central carbon metabolism in cancer</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05230">pathway list 5230</a>)</p></li>
+<li><p>05231 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05231">Choline metabolism in cancer</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05231">pathway list 5231</a>)</p></li>
+<li><p>05235 <a class="reference external" href="https://www.kegg.jp/kegg-bin/show_pathway?hsa05235">PD-L1 expression and PD-1 checkpoint pathway in cancer</a> , (<a class="reference external" href="http://rest.kegg.jp/link/hsa/hsa05235">pathway list 5235</a>)</p></li>
+</ul>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Excerpt of a KEGG_filter.txt file</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ensembl_id</p></th>
+<th class="head"><p>GeneName</p></th>
+<th class="head"><p>pathway</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ENSG00000000419</p></td>
+<td><p>DPM1</p></td>
+<td><p>[‘path:hsa01100’, ‘path:hsa00510’]</p></td>
+</tr>
+<tr class="row-odd"><td><p>ENSG00000000938</p></td>
+<td><p>FGR</p></td>
+<td><p>[‘path:hsa04062’]</p></td>
+</tr>
+<tr class="row-even"><td><p>ENSG00000000971</p></td>
+<td><p>CFH</p></td>
+<td><p>[‘path:hsa04610’, ‘path:hsa05150’]</p></td>
+</tr>
+<tr class="row-odd"><td><p>ENSG00000001036</p></td>
+<td><p>FUCA2</p></td>
+<td><p>[‘path:hsa04142’, ‘path:hsa00511’]</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="section" id="feature-importances">
 <h2>Feature importances<a class="headerlink" href="#feature-importances" title="Permalink to this headline">¶</a></h2>
 <p>Annotation of cancer prognostics can be done with the <code class="docutils literal notranslate"><span class="pre">get_protein_atlas.py</span></code> script.
-It deploys programmatic data access to the API of <cite>The Human Protein Atlas &lt;https://www.proteinatlas.org/&gt;_</cite> and retrieves information in JSON format.</p>
+It deploys programmatic data access to the API of <a class="reference external" href="https://www.proteinatlas.org/">The Human Protein Atlas</a> and retrieves information in JSON format.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>get_protein_atlas.py
 -i/--inpath:            Inpath to table with feature importance values <span class="o">(</span>CSV<span class="o">)</span>
 -c/--cancer:            Cancer <span class="nb">type</span> used <span class="k">for</span> query

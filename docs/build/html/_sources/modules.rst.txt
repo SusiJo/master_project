@@ -6,7 +6,7 @@ This section contains the API of the modules and functions.
 .. toctree::
    :maxdepth: 4
 
-   clustering
+   dim_reduction
    extract_gene_ids2name
    fileUtils
    get_protein_atlas

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>clustering &mdash; master_project 0.0.1 documentation</title>
+  <title>dim_reduction &mdash; master_project 0.0.1 documentation</title>
   
 
   
@@ -142,7 +142,7 @@
         
           <li><a href="index.html">Module code</a> &raquo;</li>
         
-      <li>clustering</li>
+      <li>dim_reduction</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -157,16 +157,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for clustering</h1><div class="highlight"><pre>
-<span></span><span class="ch">#!/usr/bin/python3</span>
-
-<span class="c1"># The purpose of this script is to</span>
-<span class="c1"># 1) Transform the merged data (stringTie, featureCounts) such</span>
-<span class="c1">#    that is can by used by ML: row = sample, col = gene (feature)</span>
-<span class="c1"># 2) Scale the data with MinMaxScaler from scikit-learn on genes = columns</span>
-<span class="c1"># 3) Create a dictionary like structure for storage target_names = label [tumor, control]</span>
-<span class="c1"># {data: array[], target: array[], target_names: array[], feature_names: array[]}</span>
-
+  <h1>Source code for dim_reduction</h1><div class="highlight"><pre>
+<span></span><span class="c1"># The purpose of this script is to</span>
+<span class="c1"># 1) Transform the merged data (stringTie, featureCounts) for dimensionality reduction</span>
+<span class="c1"># 2) Scale with MinMaxScaler</span>
+<span class="c1"># 3) Plot with PCA, tSNE, UMAP</span>
 
 <span class="c1"># imports</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -183,7 +178,7 @@
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">silhouette_samples</span><span class="p">,</span> <span class="n">silhouette_score</span>
 <span class="kn">from</span> <span class="nn">sklearn.decomposition</span> <span class="kn">import</span> <span class="n">PCA</span>
 <span class="kn">from</span> <span class="nn">sklearn.manifold</span> <span class="kn">import</span> <span class="n">TSNE</span>
-<span class="kn">import</span> <span class="nn">umap</span>  <span class="c1"># umap-learn</span>
+<span class="kn">import</span> <span class="nn">umap</span>  <span class="c1"># = umap-learn</span>
 <span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="k">as</span> <span class="nn">cm</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">NullFormatter</span>
@@ -210,8 +205,6 @@
     <span class="k">if</span> <span class="n">inpath</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reading data...&quot;</span><span class="p">)</span>
         <span class="n">sample_ids</span><span class="p">,</span> <span class="n">gene_ids</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">read_tpm</span><span class="p">(</span><span class="n">inpath</span><span class="p">)</span>
-        <span class="c1"># print(&quot;sample ids&quot;, sample_ids)</span>
-        <span class="c1"># print(&quot;data&quot;, data)</span>
 
         <span class="c1"># convert data to numpy array for scaling and transpose to scale on genes</span>
         <span class="c1"># shape = (features, samples)</span>
@@ -258,8 +251,8 @@
         <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;UniqueID&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">scaled_data</span> <span class="o">=</span> <span class="n">scaling</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 
-    <span class="c1"># print(&quot;Plotly comparison...&quot;)</span>
-    <span class="c1"># plotly_comparison(scaled_data, pcolor_list, ccolor_list, annotations, outpath, title)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Plotly comparison...&quot;</span><span class="p">)</span>
+    <span class="n">plotly_comparison</span><span class="p">(</span><span class="n">scaled_data</span><span class="p">,</span> <span class="n">pcolor_list</span><span class="p">,</span> <span class="n">ccolor_list</span><span class="p">,</span> <span class="n">annotations</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
 
     <span class="c1"># Plotting</span>
     <span class="k">if</span> <span class="n">pca</span><span class="p">:</span>
@@ -270,7 +263,8 @@
         <span class="n">visualization_plots</span><span class="p">(</span><span class="n">scaled_data</span><span class="p">,</span> <span class="n">annotations</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="s1">&#39;umap&#39;</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">comparison</span><span class="p">:</span>
-        <span class="n">comparison_dim_reduction</span><span class="p">(</span><span class="n">scaled_data</span><span class="p">,</span> <span class="n">pcolor_list</span><span class="p">,</span> <span class="n">outpath</span><span class="p">)</span>
+        <span class="n">comparison_dim_reduction</span><span class="p">(</span><span class="n">scaled_data</span><span class="p">,</span> <span class="n">pcolor_list</span><span class="p">,</span> <span class="n">outpath</span> <span class="o">+</span> <span class="s2">&quot;project_&quot;</span><span class="p">)</span>
+        <span class="n">comparison_dim_reduction</span><span class="p">(</span><span class="n">scaled_data</span><span class="p">,</span> <span class="n">ccolor_list</span><span class="p">,</span> <span class="n">outpath</span> <span class="o">+</span> <span class="s2">&quot;condition_&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">silhouette</span><span class="p">:</span>
         <span class="n">silhouette_plot</span><span class="p">(</span><span class="n">scaled_data</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
@@ -278,7 +272,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="n">silhouette_samples</span><span class="p">(</span><span class="n">scaled_data</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="read_metadata"><a class="viewcode-back" href="../clustering.html#clustering.read_metadata">[docs]</a><span class="k">def</span> <span class="nf">read_metadata</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">sample_ids</span><span class="p">):</span>
+<div class="viewcode-block" id="read_metadata"><a class="viewcode-back" href="../dim_reduction.html#dim_reduction.read_metadata">[docs]</a><span class="k">def</span> <span class="nf">read_metadata</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">sample_ids</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Read in metadata file csv format</span>
 <span class="sd">    FileID, CaseID, SampleType, Project</span>
 
@@ -306,83 +300,63 @@
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">e</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target_names</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">target_names</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta_dict</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;target names</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">target_names</span><span class="p">)</span>
 
-    <span class="c1"># target array of conditions encoded as 0,1</span>
+    <span class="c1"># encode conditions as target array of 0,1</span>
     <span class="n">target</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;normal&#39;</span> <span class="k">else</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">target_names</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;target</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 
     <span class="c1"># Create Dataframe object for annotations for plots</span>
     <span class="c1"># sort the metadata dictionary according to order of sample_target_names</span>
     <span class="n">sorted_meta</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">el</span><span class="p">,</span> <span class="n">meta_dict</span><span class="p">[</span><span class="n">el</span><span class="p">])</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">target_names</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sorted meta &quot;</span><span class="p">,</span> <span class="n">sorted_meta</span><span class="p">)</span>
     <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span> <span class="o">+</span> <span class="n">i</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="n">sorted_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_meta</span><span class="p">)}</span>
-
     <span class="n">annos</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;annos</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">annos</span><span class="p">)</span>
+
     <span class="c1"># expand list with metadata into own series</span>
     <span class="n">tags</span> <span class="o">=</span> <span class="n">annos</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span>
     <span class="n">tags</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;CaseID&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Condition&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;Project&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="c1"># print(&quot;tags &quot;, tags)</span>
+
     <span class="c1"># concat dataframes</span>
     <span class="n">annotations</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">annos</span><span class="p">[:],</span> <span class="n">tags</span><span class="p">[:]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">annotations</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">annotations</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;ID&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Annotations</span><span class="se">\n</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">annotations</span><span class="p">)</span>
 
+    <span class="c1"># get projects as different arrays, dicts</span>
     <span class="n">project_series</span> <span class="o">=</span> <span class="n">annotations</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span>
-    <span class="c1"># print(&quot;project series\n&quot;, project_series)</span>
-    <span class="c1"># project_list = project_series.tolist()</span>
-    <span class="c1"># print(&quot;project_list\n&quot;, project_list)</span>
     <span class="n">project_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">project_series</span><span class="p">)</span>
-    <span class="c1"># print(project_set)</span>
     <span class="n">project_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="mi">0</span> <span class="o">+</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">project_set</span><span class="p">)}</span>
-    <span class="c1"># print(project_dict)</span>
     <span class="n">project_arr</span> <span class="o">=</span> <span class="p">[</span><span class="n">project_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">project_series</span><span class="p">]</span>
-    <span class="c1"># print(project_arr)</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">]</span>
-    <span class="n">color_tups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">project_set</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
-    <span class="c1"># color_dict = {e[0]: e[1] for e in color_tups}</span>
-    <span class="c1"># pdict = {&#39;GTEx-PRJNA75899&#39;: &#39;#EF553B&#39;, &#39;TCGA-PAAD&#39;: &#39;#AB63FA&#39;, &#39;PACA-AU&#39;: &#39;#00CC96&#39;, &#39;PACA-CA&#39;: &#39;#636EFA&#39;}</span>
-    <span class="c1"># pdict = {&#39;PRJNA75899&#39;: &#39;#00CC96&#39;, &#39;TCGA-LIHC&#39;: &#39;#EF553B&#39;, &#39;LIRI-JP&#39;: &#39;#636EFA&#39;, &#39;TCGA-CHOL&#39;: &#39;#AB63FA&#39;}</span>
-    <span class="n">pdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;SRP030040&#39;</span><span class="p">:</span> <span class="s1">&#39;#85660D&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP058626&#39;</span><span class="p">:</span> <span class="s1">&#39;#782AB6&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP187978&#39;</span><span class="p">:</span> <span class="s1">&#39;#565656&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP050003&#39;</span><span class="p">:</span> <span class="s1">&#39;#1C8356&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;SRP029880&#39;</span><span class="p">:</span> <span class="s1">&#39;#16FF32&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP137150&#39;</span><span class="p">:</span> <span class="s1">&#39;#F7E1A0&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP102722&#39;</span><span class="p">:</span> <span class="s1">&#39;#E2E2E2&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP026600&#39;</span><span class="p">:</span> <span class="s1">&#39;#1CBE4F&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;SRP064138&#39;</span><span class="p">:</span> <span class="s1">&#39;#C4451C&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP068551&#39;</span><span class="p">:</span> <span class="s1">&#39;#DEA0FD&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP062885&#39;</span><span class="p">:</span> <span class="s1">&#39;#FE00FA&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP069212&#39;</span><span class="p">:</span> <span class="s1">&#39;#325A9B&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;SRP048907&#39;</span><span class="p">:</span> <span class="s1">&#39;#FEAF16&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP050551&#39;</span><span class="p">:</span> <span class="s1">&#39;#F8A19F&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP076032&#39;</span><span class="p">:</span> <span class="s1">&#39;#90AD1C&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP068976&#39;</span><span class="p">:</span> <span class="s1">&#39;#F6222E&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;SRP070723&#39;</span><span class="p">:</span> <span class="s1">&#39;#1CFFCE&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP108560&#39;</span><span class="p">:</span> <span class="s1">&#39;#2ED9FF&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP056696&#39;</span><span class="p">:</span> <span class="s1">&#39;#B10DA1&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP040998&#39;</span><span class="p">:</span> <span class="s1">&#39;#C075A6&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;SRP118972&#39;</span><span class="p">:</span> <span class="s1">&#39;#FC1CBF&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP039694&#39;</span><span class="p">:</span> <span class="s1">&#39;#B00068&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP174502&#39;</span><span class="p">:</span> <span class="s1">&#39;#FBE426&#39;</span><span class="p">,</span> <span class="s1">&#39;SRP049592&#39;</span><span class="p">:</span> <span class="s1">&#39;#FA0087&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;PRJNA75899&#39;</span><span class="p">:</span> <span class="s1">&#39;#00CC96&#39;</span><span class="p">,</span> <span class="s1">&#39;TCGA-LIHC&#39;</span><span class="p">:</span> <span class="s1">&#39;#EF553B&#39;</span><span class="p">,</span> <span class="s1">&#39;LIRI-JP&#39;</span><span class="p">:</span> <span class="s1">&#39;#636EFA&#39;</span><span class="p">,</span> <span class="s1">&#39;TCGA-CHOL&#39;</span><span class="p">:</span> <span class="s1">&#39;#AB63FA&#39;</span><span class="p">}</span>
 
-    <span class="c1"># print(&#39;Color-dict\n&#39;, pdict) #color_dict</span>
-    <span class="c1"># color_list = [pdict[k] for k in project_list] #color_dict</span>
+    <span class="c1"># define colors for projects</span>
+    <span class="n">pdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;GTEx-PRJNA75899&#39;</span><span class="p">:</span> <span class="s1">&#39;#EF553B&#39;</span><span class="p">,</span> <span class="s1">&#39;TCGA-PAAD&#39;</span><span class="p">:</span> <span class="s1">&#39;#AB63FA&#39;</span><span class="p">,</span> <span class="s1">&#39;PACA-AU&#39;</span><span class="p">:</span> <span class="s1">&#39;#00CC96&#39;</span><span class="p">,</span> <span class="s1">&#39;PACA-CA&#39;</span><span class="p">:</span> <span class="s1">&#39;#636EFA&#39;</span><span class="p">}</span>
+    <span class="c1"># pdict = {&#39;SRP030040&#39;: &#39;#85660D&#39;, &#39;SRP058626&#39;: &#39;#782AB6&#39;, &#39;SRP187978&#39;: &#39;#565656&#39;, &#39;SRP050003&#39;: &#39;#1C8356&#39;,</span>
+    <span class="c1">#         &#39;SRP029880&#39;: &#39;#16FF32&#39;, &#39;SRP137150&#39;: &#39;#F7E1A0&#39;, &#39;SRP102722&#39;: &#39;#E2E2E2&#39;, &#39;SRP026600&#39;: &#39;#1CBE4F&#39;,</span>
+    <span class="c1">#         &#39;SRP064138&#39;: &#39;#C4451C&#39;, &#39;SRP068551&#39;: &#39;#DEA0FD&#39;, &#39;SRP062885&#39;: &#39;#FE00FA&#39;, &#39;SRP069212&#39;: &#39;#325A9B&#39;,</span>
+    <span class="c1">#         &#39;SRP048907&#39;: &#39;#FEAF16&#39;, &#39;SRP050551&#39;: &#39;#F8A19F&#39;, &#39;SRP076032&#39;: &#39;#90AD1C&#39;, &#39;SRP068976&#39;: &#39;#F6222E&#39;,</span>
+    <span class="c1">#         &#39;SRP070723&#39;: &#39;#1CFFCE&#39;, &#39;SRP108560&#39;: &#39;#2ED9FF&#39;, &#39;SRP056696&#39;: &#39;#B10DA1&#39;, &#39;SRP040998&#39;: &#39;#C075A6&#39;,</span>
+    <span class="c1">#         &#39;SRP118972&#39;: &#39;#FC1CBF&#39;, &#39;SRP039694&#39;: &#39;#B00068&#39;, &#39;SRP174502&#39;: &#39;#FBE426&#39;, &#39;SRP049592&#39;: &#39;#FA0087&#39;,</span>
+    <span class="c1">#         &#39;PRJNA75899&#39;: &#39;#00CC96&#39;, &#39;TCGA-LIHC&#39;: &#39;#EF553B&#39;, &#39;LIRI-JP&#39;: &#39;#636EFA&#39;, &#39;TCGA-CHOL&#39;: &#39;#AB63FA&#39;}</span>
+
     <span class="n">pcolor_list</span> <span class="o">=</span> <span class="n">project_series</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">pdict</span><span class="p">)</span>
-    <span class="c1"># print(annotations)</span>
-    <span class="c1"># print(&#39;color-list\n&#39;, pcolor_list)</span>
 
-    <span class="c1"># target condition colors</span>
+    <span class="c1"># target condition colors, blue for normal tissue, red for tumor</span>
     <span class="n">cdict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;#636EFA&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;#EF553B&#39;</span><span class="p">}</span>
     <span class="n">ccolor_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cdict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">target</span><span class="p">]</span>
-    <span class="c1"># print(&quot;cond_colors\n&quot;, ccolor_list)</span>
-    <span class="c1"># print(ccolor_list)</span>
-    <span class="c1"># print(pcolor_list)</span>
 
     <span class="k">return</span> <span class="n">meta_dict</span><span class="p">,</span> <span class="n">target_names</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">annotations</span><span class="p">,</span> <span class="n">project_arr</span><span class="p">,</span> <span class="n">pcolor_list</span><span class="p">,</span> <span class="n">ccolor_list</span></div>
 
 
-<div class="viewcode-block" id="scaling"><a class="viewcode-back" href="../clustering.html#clustering.scaling">[docs]</a><span class="k">def</span> <span class="nf">scaling</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="scaling"><a class="viewcode-back" href="../dim_reduction.html#dim_reduction.scaling">[docs]</a><span class="k">def</span> <span class="nf">scaling</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Scaling with MinMax to range (-1,1)</span>
 
 <span class="sd">    :param data: numpy array</span>
 <span class="sd">    :return: scaled_data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">scaler</span> <span class="o">=</span> <span class="n">preprocessing</span><span class="o">.</span><span class="n">MinMaxScaler</span><span class="p">()</span>
-    <span class="c1"># scaler = preprocessing.StandardScaler()</span>
     <span class="c1"># scales in the range of -1 to 1</span>
     <span class="n">scaled_data</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">scaled_data</span></div>
 
 
-<div class="viewcode-block" id="visualization_plots"><a class="viewcode-back" href="../clustering.html#clustering.visualization_plots">[docs]</a><span class="k">def</span> <span class="nf">visualization_plots</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">title_dataset</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="visualization_plots"><a class="viewcode-back" href="../dim_reduction.html#dim_reduction.visualization_plots">[docs]</a><span class="k">def</span> <span class="nf">visualization_plots</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">title_dataset</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Creates interactive plotly graphs with reduced dimensions with tooltip displaying metadata</span>
 
 <span class="sd">    :param data: numpy array</span>
@@ -392,6 +366,7 @@
 <span class="sd">    :param title_dataset: i.e. Pancreas ComBat corrected</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1"># project color codes</span>
     <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;#85660D&#39;</span><span class="p">,</span> <span class="s1">&#39;#782AB6&#39;</span><span class="p">,</span> <span class="s1">&#39;#565656&#39;</span><span class="p">,</span> <span class="s1">&#39;#1C8356&#39;</span><span class="p">,</span> <span class="s1">&#39;#16FF32&#39;</span><span class="p">,</span> <span class="s1">&#39;#F7E1A0&#39;</span><span class="p">,</span> <span class="s1">&#39;#E2E2E2&#39;</span><span class="p">,</span> <span class="s1">&#39;#1CBE4F&#39;</span><span class="p">,</span> <span class="s1">&#39;#C4451C&#39;</span><span class="p">,</span>
               <span class="s1">&#39;#DEA0FD&#39;</span><span class="p">,</span> <span class="s1">&#39;#FE00FA&#39;</span><span class="p">,</span> <span class="s1">&#39;#325A9B&#39;</span><span class="p">,</span> <span class="s1">&#39;#FEAF16&#39;</span><span class="p">,</span> <span class="s1">&#39;#F8A19F&#39;</span><span class="p">,</span> <span class="s1">&#39;#90AD1C&#39;</span><span class="p">,</span> <span class="s1">&#39;#F6222E&#39;</span><span class="p">,</span> <span class="s1">&#39;#1CFFCE&#39;</span><span class="p">,</span> <span class="s1">&#39;#2ED9FF&#39;</span><span class="p">,</span>
               <span class="s1">&#39;#B10DA1&#39;</span><span class="p">,</span> <span class="s1">&#39;#C075A6&#39;</span><span class="p">,</span> <span class="s1">&#39;#FC1CBF&#39;</span><span class="p">,</span> <span class="s1">&#39;#B00068&#39;</span><span class="p">,</span> <span class="s1">&#39;#FBE426&#39;</span><span class="p">,</span> <span class="s1">&#39;#FA0087&#39;</span><span class="p">,</span> <span class="s1">&#39;#EF553B&#39;</span><span class="p">,</span> <span class="s1">&#39;#636EFA&#39;</span><span class="p">,</span> <span class="s1">&#39;#00CC96&#39;</span><span class="p">,</span>
@@ -410,8 +385,8 @@
     <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;tsne&#39;</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Performing tsne for plotting...&quot;</span><span class="p">)</span>
         <span class="c1"># Dimension reduction</span>
-        <span class="c1"># consider setting init=&#39;pca&#39;, perplexity (neighbors), learning_rate</span>
-        <span class="n">tsne</span> <span class="o">=</span> <span class="n">TSNE</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">perplexity</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="c1"># optional: init=&#39;pca&#39;, perplexity (neighbors), learning_rate</span>
+        <span class="n">tsne</span> <span class="o">=</span> <span class="n">TSNE</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">X_embedded</span> <span class="o">=</span> <span class="n">tsne</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">d1</span> <span class="o">=</span> <span class="n">X_embedded</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">d2</span> <span class="o">=</span> <span class="n">X_embedded</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
@@ -420,19 +395,20 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Performing umap for plotting...&quot;</span><span class="p">)</span>
         <span class="c1"># Dimension reduction</span>
         <span class="c1"># ensure reproducibility of embedding by setting random state, n_neighbors, metric=&#39;mahalanobis&#39;</span>
-        <span class="n">reducer</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># optional n_neighbors=30, min_dist=0</span>
+        <span class="n">reducer</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
         <span class="n">embedding</span> <span class="o">=</span> <span class="n">reducer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">d1</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">d2</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
 
-    <span class="c1"># Plotting</span>
+    <span class="c1"># Plotting by conditions C and projects P</span>
     <span class="n">figC</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">d1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">d2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">Condition</span><span class="p">,</span> <span class="n">hover_name</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span>
                       <span class="n">hover_data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">target</span><span class="o">.</span><span class="n">Project</span><span class="p">,</span> <span class="s1">&#39;case_id&#39;</span><span class="p">:</span> <span class="n">target</span><span class="o">.</span><span class="n">CaseID</span><span class="p">},</span>
                       <span class="n">template</span><span class="o">=</span><span class="s2">&quot;simple_white&quot;</span><span class="p">,</span> <span class="n">color_discrete_sequence</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#636EFA&#39;</span><span class="p">,</span> <span class="s1">&#39;#EF553B&#39;</span><span class="p">])</span>  <span class="c1"># px.colors.qualitative.Plotly</span>
 
     <span class="n">figP</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">d1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">d2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">Project</span><span class="p">,</span> <span class="n">hover_name</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span>
                       <span class="n">hover_data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;condition&#39;</span><span class="p">:</span> <span class="n">target</span><span class="o">.</span><span class="n">Condition</span><span class="p">,</span> <span class="s1">&#39;case_id&#39;</span><span class="p">:</span> <span class="n">target</span><span class="o">.</span><span class="n">CaseID</span><span class="p">},</span>
-                      <span class="n">template</span><span class="o">=</span><span class="s2">&quot;simple_white&quot;</span><span class="p">,</span> <span class="n">color_discrete_sequence</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+                      <span class="n">template</span><span class="o">=</span><span class="s2">&quot;simple_white&quot;</span><span class="p">,</span> <span class="n">color_discrete_sequence</span><span class="o">=</span><span class="n">colors2</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;pca&#39;</span><span class="p">:</span>
         <span class="n">figC</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; - &#39;</span> <span class="o">+</span> <span class="n">title_dataset</span> <span class="o">+</span> <span class="s1">&#39; dataset&#39;</span><span class="p">,</span>
@@ -443,7 +419,7 @@
         <span class="n">figP</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; - &#39;</span> <span class="o">+</span> <span class="n">title_dataset</span> <span class="o">+</span> <span class="s1">&#39; dataset&#39;</span><span class="p">,</span>
                            <span class="n">xaxis_title</span><span class="o">=</span><span class="s2">&quot;PC1 - explained variance: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">evr1</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
                            <span class="n">yaxis_title</span><span class="o">=</span><span class="s2">&quot;PC2 - explained variance: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">evr2</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
-                           <span class="n">legend_title</span><span class="o">=</span><span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="n">colorway</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+                           <span class="n">legend_title</span><span class="o">=</span><span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="n">colorway</span><span class="o">=</span><span class="n">colors2</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">figC</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; - &#39;</span> <span class="o">+</span> <span class="n">title_dataset</span> <span class="o">+</span> <span class="s1">&#39; dataset&#39;</span><span class="p">,</span>
                            <span class="n">xaxis_title</span><span class="o">=</span><span class="s2">&quot;Dim1&quot;</span><span class="p">,</span> <span class="n">yaxis_title</span><span class="o">=</span><span class="s2">&quot;Dim2&quot;</span><span class="p">,</span>
@@ -454,11 +430,12 @@
                            <span class="n">colorway</span><span class="o">=</span><span class="n">colors2</span><span class="p">)</span>
 
     <span class="c1"># control location of legend with  yanchor=&quot;top&quot;, y=0.99, xanchor=&quot;left&quot;, x=0.01,</span>
-    <span class="n">figC</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)))</span>
-    <span class="n">figP</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)))</span>
-    <span class="n">figC</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>  <span class="c1"># (marker=go.scatter.Marker(size=20))</span>
+    <span class="c1"># orientation=&quot;h&quot;, yanchor=&quot;bottom&quot;, y=1.02, xanchor=&quot;right&quot;, x=1,</span>
+    <span class="n">figC</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="n">yanchor</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.02</span><span class="p">,</span> <span class="n">xanchor</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">)))</span>
+    <span class="n">figP</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="n">yanchor</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.02</span><span class="p">,</span> <span class="n">xanchor</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">)))</span>
+    <span class="n">figC</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
     <span class="n">figC</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-    <span class="n">figP</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>  <span class="c1"># (marker=go.scatter.Marker(size=20))</span>
+    <span class="n">figP</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
     <span class="n">figP</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="c1"># export to html</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outpath</span><span class="p">):</span>
@@ -467,13 +444,17 @@
     <span class="n">figP</span><span class="o">.</span><span class="n">write_html</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">title_dataset</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_project.html&quot;</span><span class="p">)</span>
 
     <span class="c1"># reduce marker sizes for pdf pictures</span>
-    <span class="n">figC</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>  <span class="c1"># (marker=go.scatter.Marker(size=5))</span>
-    <span class="n">figP</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>  <span class="c1"># (marker=go.scatter.Marker(size=5))</span>
-    <span class="n">figC</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">title_dataset</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_condition.pdf&quot;</span><span class="p">)</span>
-    <span class="n">figP</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">title_dataset</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_project.pdf&quot;</span><span class="p">)</span></div>
+    <span class="n">figC</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+    <span class="n">figP</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+    <span class="n">figC</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">title_font_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">tickfont_size</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">figC</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">title_font_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">tickfont_size</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">figP</span><span class="o">.</span><span class="n">update_xaxes</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">title_font_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">tickfont_size</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">figC</span><span class="o">.</span><span class="n">update_yaxes</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">title_font_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">tickfont_size</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">figC</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">title_dataset</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_condition.pdf&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">figP</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">title_dataset</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_project.pdf&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="comparison_dim_reduction"><a class="viewcode-back" href="../clustering.html#clustering.comparison_dim_reduction">[docs]</a><span class="k">def</span> <span class="nf">comparison_dim_reduction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
+<div class="viewcode-block" id="comparison_dim_reduction"><a class="viewcode-back" href="../dim_reduction.html#dim_reduction.comparison_dim_reduction">[docs]</a><span class="k">def</span> <span class="nf">comparison_dim_reduction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">outpath</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Main code from scikit-learn to create comparative plots with different reduction methods</span>
 
 <span class="sd">    :param X: data</span>
@@ -482,7 +463,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Create figure</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Dimensionality reduction with &quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="c1"># uncomment to plot title</span>
+    <span class="c1"># fig.suptitle(&quot;Dimensionality reduction with &quot;, fontsize=14)</span>
     <span class="n">n_components</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="c1"># Set-up manifold methods</span>
@@ -504,19 +486,36 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s1">&#39;PCA&#39;</span><span class="p">:</span>
+            <span class="n">evr1</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">evr2</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;PC1 - &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">evr1</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;PC2 - &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">evr2</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Dim1&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Dim2&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">NullFormatter</span><span class="p">())</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">NullFormatter</span><span class="p">())</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
 
-    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
-    <span class="c1">#if not os.path.exists(outpath):</span>
-    <span class="c1">##    os.mkdir(outpath)</span>
-    <span class="c1">#plt.savefig(outpath + &quot;comparison_plot.png&quot;, format=&#39;png&#39;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outpath</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">outpath</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">outpath</span> <span class="o">+</span> <span class="s2">&quot;comparison_plot.pdf&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;pdf&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="plotly_comparison"><a class="viewcode-back" href="../clustering.html#clustering.plotly_comparison">[docs]</a><span class="k">def</span> <span class="nf">plotly_comparison</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pcolor_list</span><span class="p">,</span> <span class="n">ccolor_list</span><span class="p">,</span> <span class="n">annos</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">title_dataset</span><span class="p">):</span>
+<div class="viewcode-block" id="plotly_comparison"><a class="viewcode-back" href="../dim_reduction.html#dim_reduction.plotly_comparison">[docs]</a><span class="k">def</span> <span class="nf">plotly_comparison</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pcolor_list</span><span class="p">,</span> <span class="n">ccolor_list</span><span class="p">,</span> <span class="n">annos</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">title_dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot all dimensionality reduction techniques into one plotly plot as HTML and PDF</span>
+
+<span class="sd">    :param data: numpy array</span>
+<span class="sd">    :param pcolor_list: list of project colors</span>
+<span class="sd">    :param ccolor_list: list of condition colors</span>
+<span class="sd">    :param annos: annotation dataframe: FileID, CaseID, SampleType, Project</span>
+<span class="sd">    :param outpath: for images</span>
+<span class="sd">    :param title_dataset: for output path</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">pca</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">X_pca</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">d1</span> <span class="o">=</span> <span class="n">X_pca</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
@@ -558,7 +557,7 @@
         <span class="n">outpath</span> <span class="o">+</span> <span class="s2">&quot;comparison_&quot;</span> <span class="o">+</span> <span class="n">title_dataset</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">)</span>  <span class="c1"># plotly-orca not working --&gt; now using kaleido</span></div>
 
 
-<div class="viewcode-block" id="silhouette_plot"><a class="viewcode-back" href="../clustering.html#clustering.silhouette_plot">[docs]</a><span class="k">def</span> <span class="nf">silhouette_plot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+<div class="viewcode-block" id="silhouette_plot"><a class="viewcode-back" href="../dim_reduction.html#dim_reduction.silhouette_plot">[docs]</a><span class="k">def</span> <span class="nf">silhouette_plot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Determine good number of clusters</span>
 
 <span class="sd">    :param data: numpy array</span>
@@ -579,10 +578,6 @@
     <span class="c1"># UMAP</span>
     <span class="n">reducer</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="n">embedding</span> <span class="o">=</span> <span class="n">reducer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-
-    <span class="c1"># tSNE</span>
-    <span class="c1"># tsne = TSNE(n_components=2, random_state=0)</span>
-    <span class="c1"># embedding = tsne.fit_transform(data)</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">condition</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">clusters</span><span class="p">):</span>
         <span class="c1"># Compute the silhouette score average</span>

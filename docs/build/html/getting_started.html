@@ -205,8 +205,8 @@ It documents how to download data and metadata, setup a conda environment or Doc
 <li><p>Extract metadata into a table in csv format</p></li>
 <li><p>Merge TPM values from nf-core/rnaseq/stringTieFPKM</p></li>
 <li><p>Merge raw featureCounts from nf-core/rnaseq/featureCounts</p></li>
-<li><p>Clustering analyses performing PCA, TSNE, UMAP</p></li>
-<li><p>Batch correction with ComBat, CombatSeq, removeBatchEffect()</p></li>
+<li><p>Dimensionality reduction with PCA, t-SNE and UMAP</p></li>
+<li><p>Batch correction in R with ComBat, CombatSeq, removeBatchEffect</p></li>
 <li><p>Supvervised Classification Machine Learning: LinearSVM, SVM, RandomForest, MultiLayerPerceptron</p></li>
 </ul>
 </div>
@@ -242,20 +242,26 @@ It documents how to download data and metadata, setup a conda environment or Doc
 <li><p>Requires <code class="docutils literal notranslate"><span class="pre">python_scripts/Dockerfile</span></code></p></li>
 <li><p>Requires <code class="docutils literal notranslate"><span class="pre">python_scripts/environment.yml</span></code></p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># folder structure</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># folder structure within the container</span>
 
 ├── app/
 │   ├── tools.py
+<span class="p">|</span>   ├── ...
 ├── data/
 │     ├── ...
 ├── Dockerfile
 ├── environment.yml
 └── results/
 
+<span class="c1"># copy the code to run in the container to ``app/`` and data to ``data/``</span>
+
 <span class="c1"># from within folder containing scripts, Dockerfile and environment.yml</span>
 docker build -t &lt;name&gt; .
 
 docker run -it --rm -w &lt;work_dir&gt; -v &lt;host_dir&gt;:&lt;container_dir&gt; &lt;container_name&gt;
+
+<span class="c1"># run script from command-line</span>
+<span class="c1"># note that the conda env is already activated</span>
 </pre></div>
 </div>
 </div>
