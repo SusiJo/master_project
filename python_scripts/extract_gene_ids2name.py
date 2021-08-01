@@ -1,8 +1,8 @@
 # Purpose of this script is to read all genes that can be found by the nf-core/rnaseq pipeline
 # into a list with Ensembl IDs and gene names
+# genes.gtf available at https://ewels.github.io/AWS-iGenomes/
 
 # imports
-
 import re
 
 
@@ -73,17 +73,11 @@ def write_genes(path, outfile):
         for key, value in gene_id_name_dict.items():
             file.write("{0}{1}{2}{3}".format(key, "\t", value, "\n"))
 
-    # sorted_dict = {}
-    # for key in sorted(gene_id_name_dict.keys()):
-    #     sorted_dict[key] = gene_id_name_dict[key]
-
 
 if __name__ == "__main__":
-    # print generator in python3
-    # print(next(info))
 
-    infile = "/Users/susanne/Documents/Master/genes.gtf"
-    write_genes(infile, '/Users/susanne/Documents/Master/genes_id2name.txt')
+    infile = "genes.gtf"
+    write_genes(infile, 'genes_id2name.txt')
 
 
 
