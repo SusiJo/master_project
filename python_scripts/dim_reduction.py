@@ -110,7 +110,8 @@ def main(inpath, merged_replica, metadata, outpath, pca, tsne, umap, comparison,
         visualization_plots(scaled_data, annotations, outpath, 'umap', title)
 
     if comparison:
-        comparison_dim_reduction(scaled_data, pcolor_list, outpath)
+        comparison_dim_reduction(scaled_data, pcolor_list, outpath + "project_")
+        comparison_dim_reduction(scaled_data, ccolor_list, outpath + "condition_")
 
     if silhouette:
         silhouette_plot(scaled_data, target)
@@ -159,7 +160,7 @@ def read_metadata(metadata, sample_ids):
     tmp = {0 + i: [k, sorted_meta.get(k)] for i, k in enumerate(sorted_meta)}
 
     annos = pd.DataFrame.from_dict(tmp, orient='index')
-    print("annos\n", annos)
+    # print("annos\n", annos)
     # expand list with metadata into own series
     tags = annos.iloc[:, 1].apply(pd.Series)
     tags.rename({0: 'CaseID', 1: 'Condition', 2: 'Project'}, axis=1, inplace=True)
@@ -183,15 +184,15 @@ def read_metadata(metadata, sample_ids):
     c = ['b', 'g', 'r', 'p']
     color_tups = list(zip(project_set, c))
     # color_dict = {e[0]: e[1] for e in color_tups}
-    # pdict = {'GTEx-PRJNA75899': '#EF553B', 'TCGA-PAAD': '#AB63FA', 'PACA-AU': '#00CC96', 'PACA-CA': '#636EFA'}
+    pdict = {'GTEx-PRJNA75899': '#EF553B', 'TCGA-PAAD': '#AB63FA', 'PACA-AU': '#00CC96', 'PACA-CA': '#636EFA'}
     # pdict = {'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
-    pdict = {'SRP030040': '#85660D', 'SRP058626': '#782AB6', 'SRP187978': '#565656', 'SRP050003': '#1C8356',
-             'SRP029880': '#16FF32', 'SRP137150': '#F7E1A0', 'SRP102722': '#E2E2E2', 'SRP026600': '#1CBE4F',
-             'SRP064138': '#C4451C', 'SRP068551': '#DEA0FD', 'SRP062885': '#FE00FA', 'SRP069212': '#325A9B',
-             'SRP048907': '#FEAF16', 'SRP050551': '#F8A19F', 'SRP076032': '#90AD1C', 'SRP068976': '#F6222E',
-             'SRP070723': '#1CFFCE', 'SRP108560': '#2ED9FF', 'SRP056696': '#B10DA1', 'SRP040998': '#C075A6',
-             'SRP118972': '#FC1CBF', 'SRP039694': '#B00068', 'SRP174502': '#FBE426', 'SRP049592': '#FA0087',
-             'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
+    # pdict = {'SRP030040': '#85660D', 'SRP058626': '#782AB6', 'SRP187978': '#565656', 'SRP050003': '#1C8356',
+    #         'SRP029880': '#16FF32', 'SRP137150': '#F7E1A0', 'SRP102722': '#E2E2E2', 'SRP026600': '#1CBE4F',
+    #         'SRP064138': '#C4451C', 'SRP068551': '#DEA0FD', 'SRP062885': '#FE00FA', 'SRP069212': '#325A9B',
+    #         'SRP048907': '#FEAF16', 'SRP050551': '#F8A19F', 'SRP076032': '#90AD1C', 'SRP068976': '#F6222E',
+    #         'SRP070723': '#1CFFCE', 'SRP108560': '#2ED9FF', 'SRP056696': '#B10DA1', 'SRP040998': '#C075A6',
+    #         'SRP118972': '#FC1CBF', 'SRP039694': '#B00068', 'SRP174502': '#FBE426', 'SRP049592': '#FA0087',
+    #         'PRJNA75899': '#00CC96', 'TCGA-LIHC': '#EF553B', 'LIRI-JP': '#636EFA', 'TCGA-CHOL': '#AB63FA'}
 
     # print('Color-dict\n', pdict) #color_dict
     # color_list = [pdict[k] for k in project_list] #color_dict
@@ -236,7 +237,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
               '#DEA0FD', '#FE00FA', '#325A9B', '#FEAF16', '#F8A19F', '#90AD1C', '#F6222E', '#1CFFCE', '#2ED9FF',
               '#B10DA1', '#C075A6', '#FC1CBF', '#B00068', '#FBE426', '#FA0087', '#EF553B', '#636EFA', '#00CC96',
               '#AB63FA']
-    colors2 = ['#EF553B', '#636EFA', '#00CC96', '#AB63FA']
+    colors2 = ['#EF553B', '#636EFA', '#00CC96', '#AB63FA']  # red, blue, green purple
 
     if method == 'pca':
         print("Performing pca for plotting...")
@@ -251,7 +252,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
         print("Performing tsne for plotting...")
         # Dimension reduction
         # consider setting init='pca', perplexity (neighbors), learning_rate
-        tsne = TSNE(n_components=2, random_state=0)
+        tsne = TSNE(n_components=2, random_state=0) # perplexity=20
         X_embedded = tsne.fit_transform(data)
         d1 = X_embedded[:, 0]
         d2 = X_embedded[:, 1]
@@ -260,7 +261,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
         print("Performing umap for plotting...")
         # Dimension reduction
         # ensure reproducibility of embedding by setting random state, n_neighbors, metric='mahalanobis'
-        reducer = umap.UMAP(random_state=42)
+        reducer = umap.UMAP(random_state=42) # n_neighbors=30, min_dist=0
         embedding = reducer.fit_transform(data)
         d1 = embedding[:, 0]
         d2 = embedding[:, 1]
@@ -272,7 +273,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
 
     figP = px.scatter(x=d1, y=d2, color=target.Project, hover_name=target.ID,
                       hover_data={'condition': target.Condition, 'case_id': target.CaseID},
-                      template="simple_white")
+                      template="simple_white", color_discrete_sequence=colors2)
 
     if method == 'pca':
         figC.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
@@ -283,7 +284,7 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
         figP.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
                            xaxis_title="PC1 - explained variance: " + str(round(evr1 * 100, 2)),
                            yaxis_title="PC2 - explained variance: " + str(round(evr2 * 100, 2)),
-                           legend_title="Project", colorway=colors)
+                           legend_title="Project", colorway=colors2)
     else:
         figC.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
                            xaxis_title="Dim1", yaxis_title="Dim2",
@@ -291,8 +292,12 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
 
         figP.update_layout(title=str(method).upper() + ' - ' + title_dataset + ' dataset',
                            xaxis_title="Dim1", yaxis_title="Dim2", legend_title="Project",
-                           colorway=colors)
+                           colorway=colors2)
 
+    # control location of legend with  yanchor="top", y=0.99, xanchor="left", x=0.01,
+    # orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+    figC.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=20)))
+    figP.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=20)))
     figC.update_traces(marker={'size': 20})  # (marker=go.scatter.Marker(size=20))
     figC.show()
     figP.update_traces(marker={'size': 20})  # (marker=go.scatter.Marker(size=20))
@@ -304,10 +309,14 @@ def visualization_plots(data, target, outpath, method=str, title_dataset=str):
     figP.write_html(outpath + str(method) + '_' + title_dataset.lower() + "_project.html")
 
     # reduce marker sizes for pdf pictures
-    figC.update_traces(marker={'size': 5})  # (marker=go.scatter.Marker(size=5))
-    figP.update_traces(marker={'size': 5})  # (marker=go.scatter.Marker(size=5))
-    figC.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_condition.pdf")
-    figP.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_project.pdf")
+    figC.update_traces(marker={'size': 10})  # (marker=go.scatter.Marker(size=5))
+    figP.update_traces(marker={'size': 10})  # (marker=go.scatter.Marker(size=5))
+    figC.update_xaxes(linewidth=3, title_font_size=20, tickfont_size=20)
+    figC.update_yaxes(linewidth=3, title_font_size=20, tickfont_size=20)
+    figP.update_xaxes(linewidth=3, title_font_size=20, tickfont_size=20)
+    figC.update_yaxes(linewidth=3, title_font_size=20, tickfont_size=20)
+    figC.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_condition.pdf", scale=3)
+    figP.write_image(outpath + str(method) + '_' + title_dataset.lower() + "_project.pdf", scale=3)
 
 
 def comparison_dim_reduction(X, target, outpath):
@@ -319,7 +328,7 @@ def comparison_dim_reduction(X, target, outpath):
     """
     # Create figure
     fig = plt.figure(figsize=(15, 5))
-    fig.suptitle("Dimensionality reduction with ", fontsize=14)
+    # fig.suptitle("Dimensionality reduction with ", fontsize=14)
     n_components = 2
 
     # Set-up manifold methods
@@ -337,16 +346,28 @@ def comparison_dim_reduction(X, target, outpath):
         print("%s: %.2g sec" % (label, t1 - t0))
         ax = fig.add_subplot(1, 3, 1 + i)
         ax.scatter(Y[:, 0], Y[:, 1], c=target)  # , cmap=plt.cm.Spectral), cmap=plt.cm.Set2
-        ax.set_title("%s (%.2g sec)" % (label, t1 - t0))
+        # ax.set_title("%s (%.2g sec)" % (label, t1 - t0))
+        ax.set_title("%s" % label, fontsize=16, fontweight='bold')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        if label == 'PCA':
+            evr1 = method.explained_variance_ratio_[0]
+            evr2 = method.explained_variance_ratio_[1]
+            ax.set_xlabel("PC1 - " + str(round(evr1 * 100, 2)) + "%", fontsize=20)
+            ax.set_ylabel("PC2 - " + str(round(evr2 * 100, 2)) + "%", fontsize=20)
+        else:
+            ax.set_xlabel('Dim1', fontsize=20)
+            ax.set_ylabel('Dim2', fontsize=20)
+        ax.tick_params(axis='both', which='major', labelsize=20)
         ax.xaxis.set_major_formatter(NullFormatter())
         ax.yaxis.set_major_formatter(NullFormatter())
         ax.axis('tight')
 
-    # plt.legend()
+
     # plt.show()
     if not os.path.exists(outpath):
         os.mkdir(outpath)
-    plt.savefig(outpath + "comparison_plot.png", format='png')
+    plt.savefig(outpath + "comparison_plot.pdf", format='pdf')
 
 
 def plotly_comparison(data, pcolor_list, ccolor_list, annos, outpath, title_dataset):
@@ -357,12 +378,12 @@ def plotly_comparison(data, pcolor_list, ccolor_list, annos, outpath, title_data
     evr1 = pca.explained_variance_ratio_[0]
     evr2 = pca.explained_variance_ratio_[1]
 
-    tsne = TSNE(n_components=2, random_state=0)  # ,  perplexity=20
+    tsne = TSNE(n_components=2, random_state=0, perplexity=20)  # ,  perplexity=20
     X_embedded = tsne.fit_transform(data)
     t1 = X_embedded[:, 0]
     t2 = X_embedded[:, 1]
 
-    reducer = umap.UMAP(random_state=42)  # , n_neighbors=30, min_dist=0.0
+    reducer = umap.UMAP(random_state=42, n_neighbors=30, min_dist=0.0)  # , n_neighbors=30, min_dist=0.0
     embedding = reducer.fit_transform(data)
     u1 = embedding[:, 0]
     u2 = embedding[:, 1]
