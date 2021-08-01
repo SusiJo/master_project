@@ -6,6 +6,7 @@ channels:
 dependencies: 
   - beautifulsoup4=4.9.3
   - click=7.1.2
+  - docutils=0.16
   - jpeg=9b
   - kiwisolver
   - lxml=4.6.3
