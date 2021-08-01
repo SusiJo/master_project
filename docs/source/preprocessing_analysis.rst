@@ -115,13 +115,13 @@ Dimension Reduction / Embeddings with PCA, t-SNE and UMAP
 
 :func:`dim_reduction.py`
 
-* scales the data on the gene features with sklearn.preprocessing.MinMaxScaler() to preserve the variances
-* can perform unsupervised linear reduction via Principal Component Analysis - PCA
-* can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - t-SNE
-* can perform non-linear stochastic reduction with Uniform Manifold Approximation Projection - UMAP
-* outputs interactive html plots displaying metadata on hover (produced with plotly) and png images
-* can produce a comparative embedding in one image
-* can produce a silhouette plot to get an estimate of number of clusters in the data (k-means clustering)
+*  scales the data on the gene features with sklearn.preprocessing.MinMaxScaler() to preserve the variances
+*  can perform unsupervised linear reduction via Principal Component Analysis - PCA
+*  can perform unsupervised non-linear reduction via T-distributed Stochastic Neighbor Embedding - t-SNE
+*  can perform non-linear stochastic reduction with Uniform Manifold Approximation Projection - UMAP
+*  outputs interactive html plots displaying metadata on hover (produced with plotly) and png images
+*  can produce a comparative embedding in one image
+*  can produce a silhouette plot to get an estimate of number of clusters in the data (k-means clustering)
 
 .. code-block:: bash
 

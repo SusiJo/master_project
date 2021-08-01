@@ -63,8 +63,8 @@ The current version does not support automatic metadata download yet, but it wil
 Obtain RNA-Seq expression data
 ******************************
 
-* Run `qbic-pipelines/bamtofastq <https://github.com/qbic-pipelines/bamtofastq>`_  ``v.1.1.0``
-* Run `nf-core/rnaseq <https://nf-co.re/rnaseq/1.4.2/usage>`_  ``v.1.4.2``
+*  Run `qbic-pipelines/bamtofastq <https://github.com/qbic-pipelines/bamtofastq>`_  ``v.1.1.0``
+*  Run `nf-core/rnaseq <https://nf-co.re/rnaseq/1.4.2/usage>`_  ``v.1.4.2``
 
 
 

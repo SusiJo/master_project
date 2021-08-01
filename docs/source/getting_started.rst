@@ -8,15 +8,15 @@ It documents how to download data and metadata, setup a conda environment or Doc
 Features
 ********
 
-* Download RNA-Seq expression data from repositories
-* Convert BAM to FASTQ and use nf-core/rnaseq
-* Download metadata from TCGA, ICGC, GTEx, SRA
-* Extract metadata into a table in csv format
-* Merge TPM values from nf-core/rnaseq/stringTieFPKM
-* Merge raw featureCounts from nf-core/rnaseq/featureCounts
-* Dimensionality reduction with PCA, t-SNE and UMAP
-* Batch correction in R with ComBat, CombatSeq, removeBatchEffect
-* Supvervised Classification Machine Learning: LinearSVM, SVM, RandomForest, MultiLayerPerceptron 
+*  Download RNA-Seq expression data from repositories
+*  Convert BAM to FASTQ and use nf-core/rnaseq
+*  Download metadata from TCGA, ICGC, GTEx, SRA
+*  Extract metadata into a table in csv format
+*  Merge TPM values from nf-core/rnaseq/stringTieFPKM
+*  Merge raw featureCounts from nf-core/rnaseq/featureCounts
+*  Dimensionality reduction with PCA, t-SNE and UMAP
+*  Batch correction in R with ComBat, CombatSeq, removeBatchEffect
+*  Supvervised Classification Machine Learning: LinearSVM, SVM, RandomForest, MultiLayerPerceptron 
 
 
 
