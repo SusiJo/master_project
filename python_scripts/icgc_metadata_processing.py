@@ -90,8 +90,6 @@ def parse_icgc_json_files(files, donors):
         with open(donor) as json_file:
             data = json.load(json_file)
             file_id = os.path.basename(donor).split(".")[0]
-            # file_name = os.path.basename(donor).split(".")[1]
-            # donor_id = os.path.basename(donor).split(".")[2]
             gender = dictor(data, "gender")
             vital_status = dictor(data, "vitalStatus")
             age_at_index = dictor(data, "ageAtDiagnosis")
@@ -102,18 +100,6 @@ def parse_icgc_json_files(files, donors):
             survival_time = dictor(data, "survivalTime")
             tumor_stage = dictor(data, "tumourStageAtDiagnosis")
             diagnosisIcd10 = dictor(data, "diagnosisIcd10")
-            # match file and donor specimen
-            # for s in specimen_ids:
-            # for i, e in enumerate(specimen):
-            #  for k, v in e.items():
-            # print(s, i, e, k, v)
-            # if v == s:
-            # print(v)
-            # print(e['type'])
-            # extract sample type
-            # sample_type = e['type']
-            # print(sample_type)
-            # primary_diagnosis = e['tumourHistologicalType'] # not found for some!!
 
             for k, v in metadata.items():
                 if k == file_id:
