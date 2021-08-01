@@ -1,5 +1,5 @@
 """Script to programmatically access The Human Protein Atlas for Ensembl Gene IDs
-   and to obtain pathology prognostics for cancer
+    and to obtain pathology prognostics for cancer
 """
 
 import requests
